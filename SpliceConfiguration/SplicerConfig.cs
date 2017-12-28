@@ -42,6 +42,9 @@ namespace SpliceConfiguration
                 xw.WriteEndElement();
             xw.WriteEndElement();
 
+            xw.WriteStartElement("InfuzeProfiles");
+            xw.WriteEndElement();
+
             xw.WriteStartElement("Profiles");
                 foreach (var profile in Profiles)
                 {

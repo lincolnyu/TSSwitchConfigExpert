@@ -18,7 +18,7 @@ namespace SpliceConfiguration
 
             public ElementaryStream SourceStream{get;set;}
 
-            public string BitRateDisplayUnits {get;set;}
+            public string BitRateDisplayUnits {get;set;} = "bits";
 
             public bool CheckCCErrors{get;set;}
 
@@ -131,6 +131,7 @@ namespace SpliceConfiguration
         public void WriteToXml(XmlWriter xw)
         {
             xw.WriteStartElement("Profile");
+            xw.WriteAttributeString("name", Name);
                 xw.WriteStartElement("OutputMuxRate");
                 xw.WriteString(OutputMuxRate.ToString());
                 xw.WriteEndElement();
@@ -152,7 +153,7 @@ namespace SpliceConfiguration
                 xw.WriteStartElement("PSIEmitsPerSecond");
                 xw.WriteString(PSIEmitsPerSecond.RoundToSciNotation());
                 xw.WriteEndElement();
-                xw.WriteStartElement("ElemtaryStreams");
+                xw.WriteStartElement("ElementaryStreams");
                 xw.WriteAttributeString("ignoreErrors", IgnoreStreamErrors.ToString());
                     foreach (var es in ElementaryStreams)
                     {

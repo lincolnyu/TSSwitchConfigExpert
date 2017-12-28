@@ -1,7 +1,8 @@
 ﻿#region EXEC_TYPES
 
 //#define SPLICER_DEBUG
-//#define STREAMWRITER_DEBUG
+#define STREAMWRITER_DEBUG
+#define INGESTOR_DEBUG
 
 #endregion
 
@@ -12,14 +13,14 @@
 //#define KATE_CONFIGS
 //#define CLEAR_DATABASE
 //#define KILL_VLCS
-#define TEST_WRITE_CONFIG
+//#define TEST_WRITE_CONFIG
 
 //#define INGEST_ONLY
 //#define STREAM_INPUT_ONLY
 //#define RUN_INPUT_VLC_ONLY
 //#define RUN_SPLICE_VLCS_ONLY
 //#define SPLICE_ONLY
-//#define RUN_ALL_BUT_TAIL
+#define RUN_ALL_BUT_TAIL
 
 #endregion
 
@@ -108,6 +109,13 @@ namespace cs
             ReleaseConfig;
 #endif
 
+        static string IngestorBuildConfig =
+#if INGESTOR_DEBUG
+            DebugConfig;
+#else
+            ReleaseConfig;
+#endif
+
         static string BaseFolder = "/Data/video_files/multitriggers";
         static string StreamwriterExec = $"/code/splice/src/application/splicer2server/build/xenial_testing/{StreamWriterBuildConfig}/application/tools/streamwriter";
         static string SourceFolder = Path.Combine(BaseFolder, "Source");
@@ -116,12 +124,13 @@ namespace cs
 
         static string SplicerBuildFolder = $"/code/splice_copy2/src/application/splicer2server/build/xenial_testing/{SplicerBuildConfig}";
         static string SplicerExec = Path.Combine(SplicerBuildFolder, "application/splicer2server/splicer2server_app/splicer2server_app");
-        static string ConfigFolder = BaseFolder;
+        //static string ConfigFolder = BaseFolder;
+        static string ConfigFolder = "/Data/config/config.git";
         static string ConfigPath = Path.Combine(ConfigFolder, "splicer2server.xml");
 
+        static string IngestorBuildFolder = $"/code/splice_copy2/src/application/splicer2server/build/xenial_testing/{IngestorBuildConfig}";
         static string IngestorExecName = "ccms_ingestor";
-
-        static string IngestorExec = Path.Combine(SplicerBuildFolder, "application/splicer2server/tools/Ingestor/CCMS", IngestorExecName);
+        static string IngestorExec = Path.Combine(IngestorBuildFolder, "application/splicer2server/tools/Ingestor/CCMS", IngestorExecName);
 
         static string SCHBackupFolder = Path.Combine(BaseFolder, "SCHBak");
 
@@ -404,7 +413,7 @@ namespace cs
                 //OmitXmlDeclaration = true,
                 //NewLineOnAttributes = true
             };
-            using (var fs = new FileStream("/data/temp/splicer2server_config.generated.xml", FileMode.Create))
+            using (var fs = new FileStream("/Data/config/config.git/splicer2server_config.xml", FileMode.Create))
             using (var xw = XmlWriter.Create(fs, settings))
             {
                 var config = Expert.TestGenerateConfig();

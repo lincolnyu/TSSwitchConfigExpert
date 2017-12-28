@@ -7,7 +7,7 @@
             "type": "process",
             "args": [
                 "build",
-                "${workspaceFolder}/cs.csproj"
+                "${workspaceFolder}/SpliceConfigExpert.csproj"
             ],
             "problemMatcher": "$msCompile"
         }

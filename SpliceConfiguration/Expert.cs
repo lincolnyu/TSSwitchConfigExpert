@@ -42,7 +42,6 @@ namespace SpliceConfiguration
 
         }
 
-
         public void GenerateSplicerConfig()
         {
 
@@ -91,6 +90,8 @@ namespace SpliceConfiguration
                 }
             };
 
+            const string AccuracyMode = "frameEncSubgop";
+
             const int txRateSD = 10000000;
             const int txRateHD = 13000000;
 
@@ -103,10 +104,34 @@ namespace SpliceConfiguration
             var librarySd = Library.CreateTSLibrary("HBO_SD", "/Data/video_files/multitriggers/SD_Assets/");
             var libraryHd = Library.CreateTSLibrary("HBO_HD", "/Data/video_files/multitriggers/HD_Assets/");
 
-            var profileHBOAdrSDCro = new Profile
+            var tempOutES = new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                        MatchPid = 7301,
+                        BitRateDisplayUnits = "bits",
+                        ExcludeFromMuxerRestarts = true,
+                        MaxBitRate = 200000,
+                        MinBitRate = 4602,
+                        OutputPid= 7331
+                    };
+            var profile_HBOAdrSD_Cro = new Profile
             {
+                Name = "profile_HBOAdrSD_Cro",
                 OutputMuxRate = txRateSD,
                 PCRPid = 811,
+                ElementaryStreams = 
+                {
+                    new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                        BitRateDisplayUnits = "megabits",
+                        CheckCCErrors = true,
+                        MaxBitRate = 8000000,
+                        MinBitRate = 5000000,
+                        OutputPid= 811
+                    },
+                    tempOutES,
+                    tempOutES,
+                    tempOutES
+                },
                 OutputPrograms = 
                 {
                     new OutputProgram
@@ -118,10 +143,35 @@ namespace SpliceConfiguration
                     }
                 }
             };
-            var profileHBOAdrHDCro = new Profile
+
+            tempOutES = new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                        MatchPid = 7321,
+                        BitRateDisplayUnits = "bits",
+                        ExcludeFromMuxerRestarts = true,
+                        MaxBitRate = 200000,
+                        MinBitRate = 4602,
+                        OutputPid= 7341
+                    };
+            var profile_HBOAdrHD_Cro = new Profile
             {
+                Name = "profile_HBOAdrHD_Cro",
                 OutputMuxRate = txRateHD,
                 PCRPid = 3321,
+                ElementaryStreams = 
+                {
+                    new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                        BitRateDisplayUnits = "megabits",
+                        CheckCCErrors = true,
+                        MaxBitRate = 10000000,
+                        MinBitRate = 8000000,
+                        OutputPid= 3321
+                    },
+                    tempOutES,
+                    tempOutES,
+                    tempOutES
+                },
                 OutputPrograms = 
                 {
                     new OutputProgram
@@ -134,10 +184,34 @@ namespace SpliceConfiguration
                 }
             };
 
-            var profileHBOAdrSDSlo = new Profile
+            tempOutES = new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                        MatchPid = 7302,
+                        BitRateDisplayUnits = "bits",
+                        ExcludeFromMuxerRestarts = true,
+                        MaxBitRate = 200000,
+                        MinBitRate = 4602,
+                        OutputPid= 7332
+                    };
+            var profile_HBOAdrSD_Slo = new Profile
             {
+                Name = "profile_HBOAdrSD_Slo",
                 OutputMuxRate = txRateSD,
-                PCRPid = 821,
+                PCRPid = 812,
+                ElementaryStreams = 
+                {
+                    new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                        BitRateDisplayUnits = "megabits",
+                        CheckCCErrors = true,
+                        MaxBitRate = 8000000,
+                        MinBitRate = 5000000,
+                        OutputPid= 812
+                    },
+                    tempOutES,
+                    tempOutES,
+                    tempOutES
+                },
                 OutputPrograms = 
                 {
                     new OutputProgram
@@ -150,10 +224,34 @@ namespace SpliceConfiguration
                 }
             };
 
-            var profileHBOAdrHDSlo  = new Profile
+           tempOutES = new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                        MatchPid = 7322,
+                        BitRateDisplayUnits = "bits",
+                        ExcludeFromMuxerRestarts = true,
+                        MaxBitRate = 200000,
+                        MinBitRate = 4602,
+                        OutputPid= 7342
+                    };
+            var profile_HBOAdrHD_Slo  = new Profile
             {
+                Name = "profile_HBOAdrHD_Slo",
                 OutputMuxRate = txRateHD,
                 PCRPid = 3322,
+                ElementaryStreams = 
+                {
+                   new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                        BitRateDisplayUnits = "megabits",
+                        CheckCCErrors = true,
+                        MaxBitRate = 11000000,
+                        MinBitRate = 8000000,
+                        OutputPid= 3322
+                    },
+                    tempOutES,
+                    tempOutES,
+                    tempOutES
+                },
                 OutputPrograms = 
                 {
                     new OutputProgram
@@ -166,10 +264,34 @@ namespace SpliceConfiguration
                 }
             };
 
-            var profileHBOAdrSDSrb  = new Profile
+           tempOutES = new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                        MatchPid = 7305,
+                        BitRateDisplayUnits = "bits",
+                        ExcludeFromMuxerRestarts = true,
+                        MaxBitRate = 200000,
+                        MinBitRate = 4602,
+                        OutputPid= 7335
+                    };
+            var profile_HBOAdrSD_Srb  = new Profile
             {
+                Name = "profile_HBOAdrSD_Srb",
                 OutputMuxRate = txRateSD,
                 PCRPid = 813,
+                ElementaryStreams = 
+                {
+                    new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                        BitRateDisplayUnits = "megabits",
+                        CheckCCErrors = true,
+                        MaxBitRate = 8000000,
+                        MinBitRate = 5000000,
+                        OutputPid= 813
+                    },
+                    tempOutES,
+                    tempOutES,
+                    tempOutES
+                },
                 OutputPrograms = 
                 {
                     new OutputProgram
@@ -182,10 +304,34 @@ namespace SpliceConfiguration
                 }
             };
 
-            var profileHBOAdrHDSrb  = new Profile
+           tempOutES = new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                        MatchPid = 3304,
+                        BitRateDisplayUnits = "bits",
+                        CheckCCErrors = true,
+                        MaxBitRate = 300000,
+                        MinBitRate = 192000,
+                        OutputPid= 3316
+                    };
+            var profile_HBOAdrHD_Srb  = new Profile
             {
+                Name = "profile_HBOAdrHD_Srb",
                 OutputMuxRate = txRateHD,
                 PCRPid = 3323,
+                ElementaryStreams = 
+                {
+                    new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                        BitRateDisplayUnits = "megabits",
+                        CheckCCErrors = true,
+                        MaxBitRate = 11000000,
+                        MinBitRate = 8000000,
+                        OutputPid= 3323
+                    },
+                    tempOutES,
+                    tempOutES,
+                    tempOutES
+                },
                 OutputPrograms = 
                 {
                     new OutputProgram
@@ -198,10 +344,34 @@ namespace SpliceConfiguration
                 }
             };
 
-            var profileHBOAdrSDBul  = new Profile
+            tempOutES = new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                        MatchPid = 7306,
+                        BitRateDisplayUnits = "bits",
+                        ExcludeFromMuxerRestarts = true,
+                        MaxBitRate = 200000,
+                        MinBitRate = 4602,
+                        OutputPid= 7336
+                    };
+            var profile_HBOAdrSD_Bul  = new Profile
             {
+                Name = "profile_HBOAdrSD_Bul",
                 OutputMuxRate = txRateSD,
                 PCRPid = 814,
+                ElementaryStreams = 
+                {
+                    new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                        BitRateDisplayUnits = "megabits",
+                        CheckCCErrors = true,
+                        MaxBitRate = 8000000,
+                        MinBitRate = 5000000,
+                        OutputPid= 814
+                    },
+                    tempOutES,
+                    tempOutES,
+                    tempOutES
+                },
                 OutputPrograms = 
                 {
                     new OutputProgram
@@ -214,10 +384,35 @@ namespace SpliceConfiguration
                 }
             };
 
-            var profileHBOAdrHDBul  = new Profile
+
+            tempOutES = new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                        MatchPid = 7326,
+                        BitRateDisplayUnits = "bits",
+                        ExcludeFromMuxerRestarts = true,
+                        MaxBitRate = 200000,
+                        MinBitRate = 4602,
+                        OutputPid= 7346
+                    };
+            var profile_HBOAdrHD_Bul  = new Profile
             {
+                Name = "profile_HBOAdrHD_Bul",
                 OutputMuxRate = txRateHD,
                 PCRPid = 3324,
+                ElementaryStreams = 
+                {
+                    new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                        BitRateDisplayUnits = "megabits",
+                        CheckCCErrors = true,
+                        MaxBitRate = 11000000,
+                        MinBitRate = 8000000,
+                        OutputPid= 3324
+                    },
+                    tempOutES,
+                    tempOutES,
+                    tempOutES
+                },
                 OutputPrograms = 
                 {
                     new OutputProgram
@@ -230,10 +425,34 @@ namespace SpliceConfiguration
                 }
             };
 
-            var profileHBOAdrSDMac  = new Profile
+            tempOutES = new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                        MatchPid = 7303,
+                        BitRateDisplayUnits = "bits",
+                        ExcludeFromMuxerRestarts = true,
+                        MaxBitRate = 200000,
+                        MinBitRate = 4602,
+                        OutputPid= 7333
+                    };
+            var profile_HBOAdrSD_Mac  = new Profile
             {
+                Name = "profile_HBOAdrSD_Mac",
                 OutputMuxRate = txRateSD,
                 PCRPid = 815,
+                ElementaryStreams = 
+                {
+                    new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                        BitRateDisplayUnits = "megabits",
+                        CheckCCErrors = true,
+                        MaxBitRate = 8000000,
+                        MinBitRate = 5000000,
+                        OutputPid= 815
+                    },
+                    tempOutES,
+                    tempOutES,
+                    tempOutES
+                },
                 OutputPrograms = 
                 {
                     new OutputProgram
@@ -246,10 +465,34 @@ namespace SpliceConfiguration
                 }
             };
 
-            var profileHBOAdrHDMac  = new Profile
+            tempOutES = new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                        MatchPid = 7323,
+                        BitRateDisplayUnits = "bits",
+                        ExcludeFromMuxerRestarts = true,
+                        MaxBitRate = 200000,
+                        MinBitRate = 4602,
+                        OutputPid= 7343
+                    };
+            var profile_HBOAdrHD_Mac  = new Profile
             {
+                Name = "profile_HBOAdrHD_Mac",
                 OutputMuxRate = txRateHD,
                 PCRPid = 3325,
+                ElementaryStreams = 
+                {
+                    new Profile.OutputElementaryStream {
+                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                        BitRateDisplayUnits = "megabits",
+                        CheckCCErrors = true,
+                        MaxBitRate = 11000000,
+                        MinBitRate = 8000000,
+                        OutputPid= 3325
+                    },
+                    tempOutES,
+                    tempOutES,
+                    tempOutES
+                },
                 OutputPrograms = 
                 {
                     new OutputProgram
@@ -264,6 +507,7 @@ namespace SpliceConfiguration
 
             var scte35_HBOAdrSD_Cro = new SCTE35Trigger
             {
+                Name = "scte35_HBOAdrSD_Cro",
                 NetworkId = "2",
                 ZoneId = "108",
                 MissingAssetPlaceholder = placeholderSD,
@@ -272,6 +516,7 @@ namespace SpliceConfiguration
 
             var scte35_HBOAdrHD_Cro = new SCTE35Trigger
             {
+                Name = "scte35_HBOAdrHD_Cro",
                 NetworkId = "2",
                 ZoneId = "208",
                 MissingAssetPlaceholder = placeholderHD,
@@ -280,6 +525,7 @@ namespace SpliceConfiguration
 
             var scte35_HBOAdrSD_Slo = new SCTE35Trigger
             {
+                Name = "scte35_HBOAdrSD_Slo",
                 NetworkId = "3",
                 ZoneId = "108",
                 MissingAssetPlaceholder = placeholderSD,
@@ -288,6 +534,7 @@ namespace SpliceConfiguration
 
             var scte35_HBOAdrSD_Srb = new SCTE35Trigger
             {
+                Name = "scte35_HBOAdrSD_Srb",
                 NetworkId = "4",
                 ZoneId = "108",
                 MissingAssetPlaceholder = placeholderSD,
@@ -296,6 +543,7 @@ namespace SpliceConfiguration
 
             var scte35_HBOAdrSD_Bul = new SCTE35Trigger
             {
+                Name =  "scte35_HBOAdrSD_Bul",
                 NetworkId = "5",
                 ZoneId = "108",
                 MissingAssetPlaceholder = placeholderSD,
@@ -304,6 +552,7 @@ namespace SpliceConfiguration
 
             var scte35_HBOAdrSD_Mac = new SCTE35Trigger
             {
+                Name = "scte35_HBOAdrSD_Mac",
                 NetworkId = "6",
                 ZoneId = "108",
                 MissingAssetPlaceholder = placeholderSD,
@@ -312,6 +561,7 @@ namespace SpliceConfiguration
 
             var scte35_HBOAdrHD_Slo = new SCTE35Trigger
             {
+                Name = "scte35_HBOAdrHD_Slo",
                 NetworkId = "3",
                 ZoneId = "208",
                 MissingAssetPlaceholder = placeholderHD,
@@ -320,6 +570,7 @@ namespace SpliceConfiguration
 
             var scte35_HBOAdrHD_Srb = new SCTE35Trigger
             {
+                Name = "scte35_HBOAdrHD_Srb",
                 NetworkId = "4",
                 ZoneId = "208",
                 MissingAssetPlaceholder = placeholderHD,
@@ -328,6 +579,7 @@ namespace SpliceConfiguration
 
             var scte35_HBOAdrHD_Bul = new SCTE35Trigger
             {
+                Name = "scte35_HBOAdrHD_Bul",
                 NetworkId = "5",
                 ZoneId = "208",
                 MissingAssetPlaceholder = placeholderHD,
@@ -336,6 +588,7 @@ namespace SpliceConfiguration
 
             var scte35_HBOAdrHD_Mac = new SCTE35Trigger
             {
+                Name = "scte35_HBOAdrHD_Mac",
                 NetworkId = "6",
                 ZoneId = "208",
                 MissingAssetPlaceholder = placeholderHD,
@@ -345,9 +598,10 @@ namespace SpliceConfiguration
             var channel_HBOAdrSD_Cro = new Channel
             {
                 Name = "HBOAdrSD_Cro",
+                AccuracyMode = AccuracyMode,
                 EnableRateTracking = true,
                 MaxGopLength = maxGopLenSD,
-                Profile = profileHBOAdrHDCro,
+                Profile = profile_HBOAdrHD_Cro,
                 Input = inputSD,
                 PrimaryProgram = inputSD.InputPrograms.FirstOrDefault(),
                 SCTE35Config = scte35_HBOAdrSD_Cro
@@ -356,9 +610,10 @@ namespace SpliceConfiguration
             var channel_HBOAdrHD_Cro = new Channel
             {
                 Name = "HBOAdrHD_Cro",
+                AccuracyMode = AccuracyMode,
                 EnableRateTracking = true,
                 MaxGopLength = maxGopLenSD,
-                Profile = profileHBOAdrHDCro,
+                Profile = profile_HBOAdrHD_Cro,
                 Input = inputHD,
                 PrimaryProgram = inputHD.InputPrograms.FirstOrDefault(),
                 SCTE35Config = scte35_HBOAdrHD_Cro
@@ -367,9 +622,10 @@ namespace SpliceConfiguration
             var channel_HBOAdrSD_Slo = new Channel
             {
                 Name = "HBOAdrSD_Slo",
+                AccuracyMode = AccuracyMode,
                 EnableRateTracking = true,
                 MaxGopLength = maxGopLenSD,
-                Profile = profileHBOAdrSDSlo,
+                Profile = profile_HBOAdrSD_Slo,
                 Input = inputSD,
                 PrimaryProgram = inputSD.InputPrograms.FirstOrDefault(),
                 SCTE35Config = scte35_HBOAdrSD_Slo
@@ -378,9 +634,10 @@ namespace SpliceConfiguration
             var channel_HBOAdrSD_Srb = new Channel
             {
                 Name = "HBOAdrSD_Srb",
+                AccuracyMode = AccuracyMode,
                 EnableRateTracking = true,
                 MaxGopLength = maxGopLenSD,
-                Profile = profileHBOAdrSDSrb,
+                Profile = profile_HBOAdrSD_Srb,
                 Input = inputSD,
                 PrimaryProgram = inputSD.InputPrograms.FirstOrDefault(),
                 SCTE35Config = scte35_HBOAdrSD_Srb
@@ -389,9 +646,10 @@ namespace SpliceConfiguration
             var channel_HBOAdrSD_Bul = new Channel
             {
                 Name = "HBOAdrSD_Bul",
+                AccuracyMode = AccuracyMode,
                 EnableRateTracking = true,
                 MaxGopLength = maxGopLenSD,
-                Profile = profileHBOAdrSDBul,
+                Profile = profile_HBOAdrSD_Bul,
                 Input = inputSD,
                 PrimaryProgram = inputSD.InputPrograms.FirstOrDefault(),
                 SCTE35Config = scte35_HBOAdrSD_Bul
@@ -400,9 +658,10 @@ namespace SpliceConfiguration
             var channel_HBOAdrSD_Mac = new Channel
             {
                 Name = "HBOAdrSD_Mac",
+                AccuracyMode = AccuracyMode,
                 EnableRateTracking = true,
                 MaxGopLength = maxGopLenSD,
-                Profile = profileHBOAdrSDMac,
+                Profile = profile_HBOAdrSD_Mac,
                 Input = inputSD,
                 PrimaryProgram = inputSD.InputPrograms.FirstOrDefault(),
                 SCTE35Config = scte35_HBOAdrSD_Mac
@@ -411,9 +670,10 @@ namespace SpliceConfiguration
             var channel_HBOAdrHD_Slo = new Channel
             {
                 Name = "HBOAdrHD_Slo",
+                AccuracyMode = AccuracyMode,
                 EnableRateTracking = true,
                 MaxGopLength = maxGopLenHD,
-                Profile = profileHBOAdrHDSlo,
+                Profile = profile_HBOAdrHD_Slo,
                 Input = inputHD,
                 PrimaryProgram = inputHD.InputPrograms.FirstOrDefault(),
                 SCTE35Config = scte35_HBOAdrHD_Slo
@@ -422,9 +682,10 @@ namespace SpliceConfiguration
             var channel_HBOAdrHD_Srb = new Channel
             {
                 Name = "HBOAdrHD_Srb",
+                AccuracyMode = AccuracyMode,
                 EnableRateTracking = true,
                 MaxGopLength = maxGopLenHD,
-                Profile = profileHBOAdrHDSrb,
+                Profile = profile_HBOAdrHD_Srb,
                 Input = inputHD,
                 PrimaryProgram = inputHD.InputPrograms.FirstOrDefault(),
                 SCTE35Config = scte35_HBOAdrHD_Srb
@@ -433,9 +694,10 @@ namespace SpliceConfiguration
             var channel_HBOAdrHD_Bul = new Channel
             {
                 Name = "HBOAdrHD_Bul",
+                AccuracyMode = AccuracyMode,
                 EnableRateTracking = true,
                 MaxGopLength = maxGopLenHD,
-                Profile = profileHBOAdrHDBul,
+                Profile = profile_HBOAdrHD_Bul,
                 Input = inputHD,
                 PrimaryProgram = inputHD.InputPrograms.FirstOrDefault(),
                 SCTE35Config = scte35_HBOAdrHD_Bul
@@ -444,9 +706,10 @@ namespace SpliceConfiguration
             var channel_HBOAdrHD_Mac = new Channel
             {
                 Name = "HBOAdrHD_Mac",
+                AccuracyMode = AccuracyMode,
                 EnableRateTracking = true,
                 MaxGopLength = maxGopLenHD,
-                Profile = profileHBOAdrHDMac,
+                Profile = profile_HBOAdrHD_Mac,
                 Input = inputHD,
                 PrimaryProgram = inputHD.InputPrograms.FirstOrDefault(),
                 SCTE35Config = scte35_HBOAdrHD_Mac
@@ -581,16 +844,16 @@ namespace SpliceConfiguration
                 },
                 Profiles = 
                 {
-                    profileHBOAdrSDCro,
-                    profileHBOAdrHDCro,
-                    profileHBOAdrSDSlo,
-                    profileHBOAdrHDSlo,
-                    profileHBOAdrSDSrb,
-                    profileHBOAdrHDSrb,
-                    profileHBOAdrSDBul,
-                    profileHBOAdrHDBul,
-                    profileHBOAdrSDMac,
-                    profileHBOAdrHDMac
+                    profile_HBOAdrSD_Cro,
+                    profile_HBOAdrHD_Cro,
+                    profile_HBOAdrSD_Slo,
+                    profile_HBOAdrHD_Slo,
+                    profile_HBOAdrSD_Srb,
+                    profile_HBOAdrHD_Srb,
+                    profile_HBOAdrSD_Bul,
+                    profile_HBOAdrHD_Bul,
+                    profile_HBOAdrSD_Mac,
+                    profile_HBOAdrHD_Mac
                 },
                 Libraries = 
                 {
