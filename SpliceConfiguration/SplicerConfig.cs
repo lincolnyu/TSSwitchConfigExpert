@@ -128,6 +128,11 @@ namespace SpliceConfiguration
                     xw.WriteString("/opt/mediaware/instream2/config/date_time_zonespec.csv");
                 xw.WriteEndElement();
                 xw.WriteStartElement("InputMonitoring");
+                xw.WriteAttributeString("ccErrorPeriod", "2");
+                xw.WriteAttributeString("lowAURateThresholdPercentage", "60");
+                xw.WriteAttributeString("maxCCErrorsInPeriod", "2");
+                xw.WriteAttributeString("pidErrorPeriod", "2");
+                xw.WriteAttributeString("timeoutSyncErrorPeriod", "5");
                 xw.WriteEndElement();
 
                 xw.WriteStartElement("Restarts");

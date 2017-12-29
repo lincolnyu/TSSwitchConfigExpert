@@ -13,5 +13,10 @@ namespace SpliceConfiguration
             var fmt = uppercase? $"{{0:E{precision}}}" : $"{{0:e{precision}}}";
             return string.Format(fmt, val);
         }
+
+        public static string BoolToStr(this bool val)
+        {
+            return val.ToString().ToLower();
+        }
     }
 }

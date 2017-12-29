@@ -99,7 +99,7 @@ namespace SpliceConfiguration
             const int maxGopLenHD = 40;
 
             const string placeholderSD = "stream_003";
-            const string placeholderHD = "stream_003";
+            const string placeholderHD = "stream_004";
 
             var librarySd = Library.CreateTSLibrary("HBO_SD", "/Data/video_files/multitriggers/SD_Assets/");
             var libraryHd = Library.CreateTSLibrary("HBO_HD", "/Data/video_files/multitriggers/HD_Assets/");
@@ -122,7 +122,7 @@ namespace SpliceConfiguration
                 {
                     new Profile.OutputElementaryStream {
                         MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
-                        BitRateDisplayUnits = "megabits",
+                        BitRateDisplayUnits = "bits",
                         CheckCCErrors = true,
                         MaxBitRate = 8000000,
                         MinBitRate = 5000000,
@@ -328,6 +328,7 @@ namespace SpliceConfiguration
                         MinBitRate = 8000000,
                         OutputPid= 3323
                     },
+                    tempOutES,
                     tempOutES,
                     tempOutES,
                     tempOutES
@@ -595,16 +596,21 @@ namespace SpliceConfiguration
                 Library = libraryHd
             };
 
+            var jamPrev = new Channel.JamPrevention
+            {
+            };
+
             var channel_HBOAdrSD_Cro = new Channel
             {
                 Name = "HBOAdrSD_Cro",
                 AccuracyMode = AccuracyMode,
                 EnableRateTracking = true,
                 MaxGopLength = maxGopLenSD,
-                Profile = profile_HBOAdrHD_Cro,
+                Profile = profile_HBOAdrSD_Cro,
                 Input = inputSD,
                 PrimaryProgram = inputSD.InputPrograms.FirstOrDefault(),
-                SCTE35Config = scte35_HBOAdrSD_Cro
+                SCTE35Config = scte35_HBOAdrSD_Cro,
+                JamPrev = jamPrev
             };
 
             var channel_HBOAdrHD_Cro = new Channel
@@ -616,7 +622,8 @@ namespace SpliceConfiguration
                 Profile = profile_HBOAdrHD_Cro,
                 Input = inputHD,
                 PrimaryProgram = inputHD.InputPrograms.FirstOrDefault(),
-                SCTE35Config = scte35_HBOAdrHD_Cro
+                SCTE35Config = scte35_HBOAdrHD_Cro,
+                JamPrev = jamPrev
             };
 
             var channel_HBOAdrSD_Slo = new Channel
@@ -628,7 +635,8 @@ namespace SpliceConfiguration
                 Profile = profile_HBOAdrSD_Slo,
                 Input = inputSD,
                 PrimaryProgram = inputSD.InputPrograms.FirstOrDefault(),
-                SCTE35Config = scte35_HBOAdrSD_Slo
+                SCTE35Config = scte35_HBOAdrSD_Slo,
+                JamPrev = jamPrev
             };
 
             var channel_HBOAdrSD_Srb = new Channel
@@ -640,7 +648,8 @@ namespace SpliceConfiguration
                 Profile = profile_HBOAdrSD_Srb,
                 Input = inputSD,
                 PrimaryProgram = inputSD.InputPrograms.FirstOrDefault(),
-                SCTE35Config = scte35_HBOAdrSD_Srb
+                SCTE35Config = scte35_HBOAdrSD_Srb,
+                JamPrev = jamPrev
             };
 
             var channel_HBOAdrSD_Bul = new Channel
@@ -652,7 +661,8 @@ namespace SpliceConfiguration
                 Profile = profile_HBOAdrSD_Bul,
                 Input = inputSD,
                 PrimaryProgram = inputSD.InputPrograms.FirstOrDefault(),
-                SCTE35Config = scte35_HBOAdrSD_Bul
+                SCTE35Config = scte35_HBOAdrSD_Bul,
+                JamPrev = jamPrev
             };
 
             var channel_HBOAdrSD_Mac = new Channel
@@ -664,7 +674,8 @@ namespace SpliceConfiguration
                 Profile = profile_HBOAdrSD_Mac,
                 Input = inputSD,
                 PrimaryProgram = inputSD.InputPrograms.FirstOrDefault(),
-                SCTE35Config = scte35_HBOAdrSD_Mac
+                SCTE35Config = scte35_HBOAdrSD_Mac,
+                JamPrev = jamPrev
             };
 
             var channel_HBOAdrHD_Slo = new Channel
@@ -676,7 +687,8 @@ namespace SpliceConfiguration
                 Profile = profile_HBOAdrHD_Slo,
                 Input = inputHD,
                 PrimaryProgram = inputHD.InputPrograms.FirstOrDefault(),
-                SCTE35Config = scte35_HBOAdrHD_Slo
+                SCTE35Config = scte35_HBOAdrHD_Slo,
+                JamPrev = jamPrev
             };
 
             var channel_HBOAdrHD_Srb = new Channel
@@ -688,7 +700,8 @@ namespace SpliceConfiguration
                 Profile = profile_HBOAdrHD_Srb,
                 Input = inputHD,
                 PrimaryProgram = inputHD.InputPrograms.FirstOrDefault(),
-                SCTE35Config = scte35_HBOAdrHD_Srb
+                SCTE35Config = scte35_HBOAdrHD_Srb,
+                JamPrev = jamPrev
             };
 
             var channel_HBOAdrHD_Bul = new Channel
@@ -700,7 +713,8 @@ namespace SpliceConfiguration
                 Profile = profile_HBOAdrHD_Bul,
                 Input = inputHD,
                 PrimaryProgram = inputHD.InputPrograms.FirstOrDefault(),
-                SCTE35Config = scte35_HBOAdrHD_Bul
+                SCTE35Config = scte35_HBOAdrHD_Bul,
+                JamPrev = jamPrev
             };
 
             var channel_HBOAdrHD_Mac = new Channel
@@ -712,7 +726,8 @@ namespace SpliceConfiguration
                 Profile = profile_HBOAdrHD_Mac,
                 Input = inputHD,
                 PrimaryProgram = inputHD.InputPrograms.FirstOrDefault(),
-                SCTE35Config = scte35_HBOAdrHD_Mac
+                SCTE35Config = scte35_HBOAdrHD_Mac,
+                JamPrev = jamPrev
             };
 
             var output_HBOAdrSD_Cro = new Output
@@ -876,7 +891,7 @@ namespace SpliceConfiguration
                 Channels = 
                 {
                     channel_HBOAdrSD_Cro,
-                    channel_HBOAdrHD_Bul,
+                    channel_HBOAdrHD_Cro,
                     channel_HBOAdrSD_Slo,
                     channel_HBOAdrSD_Srb,
                     channel_HBOAdrSD_Bul,

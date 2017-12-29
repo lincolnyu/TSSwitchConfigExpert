@@ -41,8 +41,8 @@ namespace SpliceConfiguration
         {
             xw.WriteStartElement("Channel");
             xw.WriteAttributeString("accuracyMode", AccuracyMode);
-            xw.WriteAttributeString("enableRateTracking", EnableRateTracking.ToString());
-            xw.WriteAttributeString("enableResumption", EnableResumption.ToString());
+            xw.WriteAttributeString("enableRateTracking", EnableRateTracking.BoolToStr());
+            xw.WriteAttributeString("enableResumption", EnableResumption.BoolToStr());
             xw.WriteAttributeString("inputBufferSeconds", InputBufferSeconds.RoundToStr(1));
             xw.WriteAttributeString("inputName", Input.Name);
             xw.WriteAttributeString("maxGopLength", MaxGopLength.ToString());
@@ -55,7 +55,7 @@ namespace SpliceConfiguration
             }
             
             xw.WriteAttributeString("spliceActivationAdjustment", SpliceActivationAdjustment.RoundToStr(1));
-            xw.WriteAttributeString("tolerantTimeCodes", TolerantTimeCodes.ToString());
+            xw.WriteAttributeString("tolerantTimeCodes", TolerantTimeCodes.BoolToStr());
             
                 if (JamPrev != null)
                 {
@@ -73,6 +73,6 @@ namespace SpliceConfiguration
                 xw.WriteEndElement();
 
             xw.WriteEndElement();
-    }
         }
+    }
 }

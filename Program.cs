@@ -8,7 +8,7 @@
 
 #region User switches
 
-//#define KILLALL
+#define KILLALL
 //#define KATE_SCHS
 //#define KATE_CONFIGS
 //#define CLEAR_DATABASE
@@ -20,7 +20,7 @@
 //#define RUN_INPUT_VLC_ONLY
 //#define RUN_SPLICE_VLCS_ONLY
 //#define SPLICE_ONLY
-#define RUN_ALL_BUT_TAIL
+//#define RUN_ALL_BUT_TAIL
 
 #endregion
 

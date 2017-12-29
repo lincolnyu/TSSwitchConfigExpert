@@ -61,9 +61,9 @@ namespace SpliceConfiguration
             {
                 xw.WriteStartElement("ElementaryStreamSpecification");
                 xw.WriteAttributeString("bitRateDisplayUnits", BitRateDisplayUnits);
-                xw.WriteAttributeString("checkCCErrors", CheckCCErrors.ToString());
-                xw.WriteAttributeString("checkPidErrors", CheckPidErrors.ToString());
-                xw.WriteAttributeString("excludeFromMuxerRestarts", ExcludeFromMuxerRestarts.ToString());
+                xw.WriteAttributeString("checkCCErrors", CheckCCErrors.BoolToStr());
+                xw.WriteAttributeString("checkPidErrors", CheckPidErrors.BoolToStr());
+                xw.WriteAttributeString("excludeFromMuxerRestarts", ExcludeFromMuxerRestarts.BoolToStr());
                 xw.WriteAttributeString("matchType", MatchTypeToStr());
                 if (MatchType == MatchTypes.Pid)
                 {
@@ -145,7 +145,7 @@ namespace SpliceConfiguration
                 xw.WriteString(PCRRepetitionRate.ToString());
                 xw.WriteEndElement();
                 xw.WriteStartElement("CompactingPacketizer");
-                xw.WriteString(CompactingPacketizer.ToString());
+                xw.WriteString(CompactingPacketizer.BoolToStr());
                 xw.WriteEndElement();
                 xw.WriteStartElement("DVBSIEmitsPerSecond");
                 xw.WriteString(DVBSIEmitsPerSecond.RoundToSciNotation());
@@ -154,7 +154,7 @@ namespace SpliceConfiguration
                 xw.WriteString(PSIEmitsPerSecond.RoundToSciNotation());
                 xw.WriteEndElement();
                 xw.WriteStartElement("ElementaryStreams");
-                xw.WriteAttributeString("ignoreErrors", IgnoreStreamErrors.ToString());
+                xw.WriteAttributeString("ignoreErrors", IgnoreStreamErrors.BoolToStr());
                     foreach (var es in ElementaryStreams)
                     {
                         es.WriteToXml(xw);
