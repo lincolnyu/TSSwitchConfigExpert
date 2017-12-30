@@ -9,7 +9,6 @@ namespace SpliceConfiguration
         public SplicerConfig SplicerConfig {get; private set; }
         public List<CCMSFile> CCMSFiles {get;} = new List<CCMSFile>();
 
-
         private List<Input> inputs_ = new List<Input>();
 
         public Input AddInput(string name, IEnumerable<Tuple<string, string, int>> programNameIdNumbers, string uri, string apiId)
@@ -26,20 +25,72 @@ namespace SpliceConfiguration
                 {
                     Name = tuple.Item1,
                     ProgramId = tuple.Item2,
-                    ProgramNumber = tuple.Item3
+                    ProgramNumber = tuple.Item3,
+                    Owner = input
                 };
             }
             return input;
         }
-            
-        public Output AddOuptut()
+
+        public static Profile GenerateProfile(string name, InputProgram inputProgram, 
+            IEnumerable<Profile.ElementaryStreamSelectionTraits> traitsQueue,
+            IEnumerable<OutputProgram> outputPrograms, bool rateTracking = true)
         {
-            throw new System.NotImplementedException();
+            var inputProfile = inputProgram.Profile;
+            traitsQueue = Profile.SuggestTraits(traitsQueue, rateTracking);
+            var firstVideo = traitsQueue.First(x=>x.MatchType == Profile.OutputElementaryStream.MatchTypes.Video);
+            var outputProfile = new Profile
+            {
+                Name = name,
+                SourceProfile = inputProfile,
+                PCRPid = firstVideo.OutputPid
+            };
+            outputProfile.GenerateFromSource(traitsQueue);
+
+            foreach (var outputProgram in outputPrograms)
+            {
+                outputProfile.OutputPrograms.Add(outputProgram);
+            }
+
+            return outputProfile;
         }
 
-        public void SetChannels(InputProgram primary, ICollection<InputProgram> additional, Output output)
+        public static Channel GenerateChannel(string name, Profile profile, SCTE35Trigger trigger = null, Channel.JamPrevention jamPrev = null, bool? rateTracking = false)
         {
+            var firstVideo = profile.FirstVideo();
+            var channel = new Channel
+            {
+                Name = name,
+                Profile = profile,
+                AccuracyMode = "frameEncSubgop", // TODO smart choice or manual choice
+                Input = profile.SourceProfile.Owner.Owner,
+                PrimaryProgram = profile.SourceProfile.Owner,
+                MaxGopLength = profile.SourceProfile.MaxGopLength,
+                EnableRateTracking = rateTracking.HasValue? rateTracking.Value : firstVideo?.MinBitRate.HasValue?? false,
+                SCTE35Config = trigger,
+                JamPrev = jamPrev
+            };
 
+            // TODO additional crosspoints...
+            
+            return channel;
+        }
+
+        public Output AddOuptut(string name, IEnumerable<Channel> channels, string apiId)
+        {
+            var output = new Output
+            {
+                Name = name,
+                ApiId = apiId
+            };
+            var tx = 0;
+            foreach (var channel in channels)
+            {
+                output.Channels.Add(channel);
+                tx += channel.Profile.OutputMuxRate;
+            }
+            output.TxRate = tx;
+            return output;
         }
 
         public void GenerateSplicerConfig()
@@ -70,7 +121,7 @@ namespace SpliceConfiguration
                     {
                         Name = "HBOAdriaSD",
                         ProgramId = "3",
-                        ProgramNumber = 59
+                        ProgramNumber = 59,
                     }
                 }
             };

@@ -19,7 +19,12 @@ namespace SpliceConfiguration
          */
         public int ProgramNumber {get; set;}
 
-        public BasicProfile Profile {get;set;}
+        public InputProfile Profile {get;set;}
+
+        /**
+         Input that owns this input program. Not necessarily set if not required
+         */
+        public Input Owner {get;set;}
 
         public void WriteToXml(XmlWriter xw)
         {

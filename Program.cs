@@ -8,12 +8,12 @@
 
 #region User switches
 
-#define KILLALL
+//#define KILLALL
 //#define KATE_SCHS
 //#define KATE_CONFIGS
 //#define CLEAR_DATABASE
 //#define KILL_VLCS
-//#define TEST_WRITE_CONFIG
+#define TEST_WRITE_CONFIG
 
 //#define INGEST_ONLY
 //#define STREAM_INPUT_ONLY
@@ -28,6 +28,7 @@
 #   define INGEST
 #   undef STREAM_INPTUS
 #   undef RUN_INPUT_VLCS
+
 #   undef SPLICE
 #   undef ADD_SPLICE_VLCS
 #   undef TAIL_DEBUG
@@ -94,6 +95,7 @@ namespace cs
         const string DebugConfig = "debug64";
         const string ReleaseConfig = "release64-nolicense";
 
+        const string VlcExecName = "vlc"; // cvlc
 
         static string StreamWriterBuildConfig = 
 #if STREAMWRITER_DEBUG
@@ -240,8 +242,8 @@ namespace cs
         {
             KillAllVLCs();
 
-            Process.Start("cvlc", "--video-x=0 --video-y=0 --video-title=SD_in udp://@127.0.0.1:5001");
-            Process.Start("cvlc", "--video-x=0 --video-y=0 --video-title=HD_in udp://@127.0.0.1:5101 ");
+            Process.Start(VlcExecName, "--video-x=0 --video-y=0 --video-title=SD_in udp://@127.0.0.1:5001");
+            Process.Start(VlcExecName, "--video-x=0 --video-y=0 --video-title=HD_in udp://@127.0.0.1:5101 ");
         }
 
         static void AddSpliceVLCs()
@@ -253,7 +255,7 @@ namespace cs
                 if (--countDown > 0) continue;
                 countDown = interval;
                 var args = $"--video-x=0 --video-y=0 --video-title={addr} udp://@{addr}";
-                Process.Start("cvlc", args);
+                Process.Start(VlcExecName, args);
             }
         }
 
@@ -413,7 +415,11 @@ namespace cs
                 //OmitXmlDeclaration = true,
                 //NewLineOnAttributes = true
             };
-            using (var fs = new FileStream("/Data/config/config.git/splicer2server_config.xml", FileMode.Create))
+            const string configLocation = 
+                //"/Data/config/config.git/splicer2server_config.xml";
+                @"c:\temp\splicer2server_config.xml";
+
+            using (var fs = new FileStream(configLocation, FileMode.Create))
             using (var xw = XmlWriter.Create(fs, settings))
             {
                 var config = Expert.TestGenerateConfig();
