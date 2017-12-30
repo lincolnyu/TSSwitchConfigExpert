@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SpliceConfiguration
 {
-    class Input : IXmlWritable
+    public class Input : IXmlWritable
     {
         /**
          'name' attribute

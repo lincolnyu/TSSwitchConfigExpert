@@ -2,7 +2,7 @@ using System.Xml;
 
 namespace SpliceConfiguration
 {
-    class InputProgram : IXmlWritable
+    public class InputProgram : IXmlWritable
     {
         /**
          'name' attribute

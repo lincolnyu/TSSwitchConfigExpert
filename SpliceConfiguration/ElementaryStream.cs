@@ -2,7 +2,7 @@ using System.Xml;
 
 namespace SpliceConfiguration
 {
-    class ElementaryStream
+    public class ElementaryStream
     {
         public enum Types
         {

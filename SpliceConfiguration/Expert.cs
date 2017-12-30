@@ -4,12 +4,88 @@ using System.Linq;
 
 namespace SpliceConfiguration
 {
+    /**
+      Reference: 
+       https://en.wikipedia.org/wiki/MPEG_transport_stream
+     */
     class Expert
     {
         public SplicerConfig SplicerConfig {get; private set; }
+
         public List<CCMSFile> CCMSFiles {get;} = new List<CCMSFile>();
 
-        private List<Input> inputs_ = new List<Input>();
+        public class RandomMultiSingleOutGenerator
+        {
+            public RandomMultiSingleOutGenerator(Expert expert)
+            {
+                Target = expert;
+            }
+
+            public Expert Target {get;}
+
+            public bool EnableRateTracking {get; set;} = false;
+
+            /**
+             Generate config on the target with its existing inputs details and
+             information specified in this class
+             Each channel uses one of the inputs in the config as primary and doesn't
+             have additional
+             */
+            public void GenerateSplicerConfigOnInputs(IList<Tuple<int, int>> channelInfi)
+            {
+                var i = 0;
+                var config = Target.SplicerConfig;
+                var usedOutputPmtPids = new List<int>();
+                
+                var outputProgramNumber = 1000; // This is ok?
+                foreach (var input in config.Inputs)
+                {
+                    foreach (var inputProgram in input.InputPrograms)
+                    {
+                        var profileName = $"profile_{inputProgram.Name}";
+                        var esPids = inputProgram.GetAllElementaryStreamPids();
+                        var outputPmtPid = esPids.Concat(usedOutputPmtPids).GenerateRandomPid();
+                        usedOutputPmtPids.Add(outputPmtPid);
+                        var outputProgram = new OutputProgram
+                        {
+                            PmtPid = outputPmtPid,
+                            ProgramNumber = outputProgramNumber++
+                        };
+                        var traitsList = new[]
+                        {
+                            new Profile.ElementaryStreamSelectionTraits
+                                    {
+                                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                                    },
+                            new Profile.ElementaryStreamSelectionTraits
+                                    {
+                                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                                        Pid = channelInfi[i].Item2
+                                    }
+                        };
+                        foreach (var t in traitsList)
+                        {
+                            t.SuggestTraits(EnableRateTracking);
+                        }
+                        
+                        var profile = GenerateProfile(profileName, inputProgram, 
+                            traitsList,
+                            new []{outputProgram} ,
+                            EnableRateTracking);
+                    }
+                    GenerateForChannel(input, channelInfi[i].Item1);
+                    if (i + 1 < channelInfi.Count)
+                    {
+                        i++;
+                    }
+                }
+            }
+
+            private void GenerateForChannel(Input input, int numChannels)
+            {
+
+            }
+        }
 
         public Input AddInput(string name, IEnumerable<Tuple<string, string, int>> programNameIdNumbers, string uri, string apiId)
         {
@@ -92,20 +168,31 @@ namespace SpliceConfiguration
             output.TxRate = tx;
             return output;
         }
-
-        public void GenerateSplicerConfig()
+        
+        public Library AddLibrary(string name, string location, string extension = "ts", string libraryType = "SPLICE_ASSET")
         {
-
+            return new Library
+            {
+                Name = name,
+                Location = location,
+                Extension = extension,
+                LibraryType = libraryType
+            };
         }
-
-        public void LoadTemplateCCMSPlaylist()
+        
+        public SCTE35Trigger AddSCTE35Trigger(string name, Library library, Tuple<string, string> networkZoneIdPair)
         {
-
-        }
-
-        public void GenerateCCMSPlaylist()
-        {
-
+            var trigger = new SCTE35Trigger
+            {
+                Name = name,
+                Library = library,
+            };
+            if (networkZoneIdPair != null)
+            {
+                trigger.NetworkId = networkZoneIdPair.Item1;
+                trigger.ZoneId = networkZoneIdPair.Item2;
+            }
+            return trigger;
         }
 
         public static SplicerConfig TestGenerateConfig()

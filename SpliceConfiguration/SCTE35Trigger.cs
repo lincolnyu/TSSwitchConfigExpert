@@ -12,11 +12,11 @@ namespace SpliceConfiguration
 
         public string NetworkId {get;set;}
 
-        public bool SequantialPlaylist {get;set;} = true;
-
         public string ZoneId {get;set;}
 
-        public string MissingAssetPlaceholder {get;set;}
+        public bool SequantialPlaylist {get;set;} = true;
+
+        public string MissingAssetPlaceholder {get; set;}
 
         public bool SkipMissingAssets {get;set;} = false;
 

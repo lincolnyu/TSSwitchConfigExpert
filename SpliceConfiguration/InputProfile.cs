@@ -3,7 +3,7 @@ using System.Xml;
 
 namespace SpliceConfiguration
 {
-    class InputProfile
+    public class InputProfile
     {
         public int MuxRate {get ;set;}
 

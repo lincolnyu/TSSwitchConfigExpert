@@ -6,6 +6,7 @@ namespace SpliceConfiguration
     {
         public string Extension {get;set;}
 
+        // TODO make this enum and potentially combined with extension
         public string LibraryType {get;set;}
 
         public string Location {get;set;}
