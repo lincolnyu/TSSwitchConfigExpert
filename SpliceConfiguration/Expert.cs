@@ -10,10 +10,11 @@ namespace SpliceConfiguration
      */
     class Expert
     {
-        public SplicerConfig SplicerConfig {get; private set; }
-
-        public List<CCMSFile> CCMSFiles {get;} = new List<CCMSFile>();
-
+        public class ProfileToChannel
+        {
+            public int Pid;
+            public int NumChannels;
+        }
         public class RandomMultiSingleOutGenerator
         {
             public RandomMultiSingleOutGenerator(Expert expert)
@@ -28,10 +29,10 @@ namespace SpliceConfiguration
             /**
              Generate config on the target with its existing inputs details and
              information specified in this class
-             Each channel uses one of the inputs in the config as primary and doesn't
-             have additional
+             Each channel uses one of the input programs in the config as primary 
+             and doesn't have additional
              */
-            public void GenerateSplicerConfigOnInputs(IList<Tuple<int, int>> channelInfi)
+            public void GenerateChannelsOnInputs(IList<IList<ProfileToChannel>> inputProgramToProfiles)
             {
                 var i = 0;
                 var config = Target.SplicerConfig;
@@ -42,7 +43,6 @@ namespace SpliceConfiguration
                 {
                     foreach (var inputProgram in input.InputPrograms)
                     {
-                        var profileName = $"profile_{inputProgram.Name}";
                         var esPids = inputProgram.GetAllElementaryStreamPids();
                         var outputPmtPid = esPids.Concat(usedOutputPmtPids).GenerateRandomPid();
                         usedOutputPmtPids.Add(outputPmtPid);
@@ -51,41 +51,56 @@ namespace SpliceConfiguration
                             PmtPid = outputPmtPid,
                             ProgramNumber = outputProgramNumber++
                         };
-                        var traitsList = new[]
+
+                        var profileNamePrefix = $"profile_{inputProgram.Name}";
+                        foreach (var inputProgramProfile in inputProgramToProfiles[i])
                         {
-                            new Profile.ElementaryStreamSelectionTraits
-                                    {
-                                        MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
-                                    },
-                            new Profile.ElementaryStreamSelectionTraits
-                                    {
-                                        MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
-                                        Pid = channelInfi[i].Item2
-                                    }
-                        };
-                        foreach (var t in traitsList)
-                        {
-                            t.SuggestTraits(EnableRateTracking);
+                            var nonVidPid = inputProgramProfile.Pid;
+                            var numChannels = inputProgramProfile.NumChannels;
+                            var traitsList = new[]
+                            {
+                                new Profile.ElementaryStreamSelectionTraits
+                                        {
+                                            MatchType = Profile.OutputElementaryStream.MatchTypes.Video,
+                                        },
+                                new Profile.ElementaryStreamSelectionTraits
+                                        {
+                                            MatchType = Profile.OutputElementaryStream.MatchTypes.Pid,
+                                            Pid = nonVidPid
+                                        }
+                            };
+
+                            foreach (var t in traitsList)
+                            {
+                                t.SuggestTraits(EnableRateTracking);
+                            }
+                            
+                            var profileName = inputProgramToProfiles[i].Count > 1?
+                                $"{profileNamePrefix}_{nonVidPid}" : profileNamePrefix;
+
+                            var profile = GenerateProfile(profileName, inputProgram, 
+                                traitsList,
+                                new []{outputProgram} ,
+                                EnableRateTracking);
+                            GenerateChannelsOnInput(inputProgram, profile, numChannels);
                         }
-                        
-                        var profile = GenerateProfile(profileName, inputProgram, 
-                            traitsList,
-                            new []{outputProgram} ,
-                            EnableRateTracking);
-                    }
-                    GenerateForChannel(input, channelInfi[i].Item1);
-                    if (i + 1 < channelInfi.Count)
-                    {
-                        i++;
+                        if (i + 1 < inputProgramToProfiles.Count)
+                        {
+                            i++;
+                        }
                     }
                 }
             }
 
-            private void GenerateForChannel(Input input, int numChannels)
+            private void GenerateChannelsOnInput(InputProgram primary, Profile profile, int numChannels)
             {
-
+                // TODO implement it..
             }
         }
+
+        public SplicerConfig SplicerConfig {get; private set; }
+
+        public List<CCMSFile> CCMSFiles {get;} = new List<CCMSFile>();
 
         public Input AddInput(string name, IEnumerable<Tuple<string, string, int>> programNameIdNumbers, string uri, string apiId)
         {
@@ -269,7 +284,7 @@ namespace SpliceConfiguration
                     tempOutES,
                     tempOutES,
                     tempOutES
-                },
+                },  
                 OutputPrograms = 
                 {
                     new OutputProgram
