@@ -14,6 +14,8 @@ namespace SpliceConfiguration
         {
             public int Pid;
             public int NumChannels;
+
+            public Channel.JamPrevention JamPrevention;
         }
         public class RandomMultiSingleOutGenerator
         {
@@ -27,10 +29,15 @@ namespace SpliceConfiguration
             public bool EnableRateTracking {get; set;} = false;
 
             /**
+             Pre: The config must already have at least one input with at least one input program each
              Generate config on the target with its existing inputs details and
              information specified in this class
+             Inputs if having their api_ids the ids should be numeric
+
              Each channel uses one of the input programs in the config as primary 
              and doesn't have additional
+
+             This populates Profiles, Channels and Outputs
              */
             public void GenerateChannelsOnInputs(IList<IList<ProfileToChannel>> inputProgramToProfiles)
             {
@@ -38,25 +45,21 @@ namespace SpliceConfiguration
                 var config = Target.SplicerConfig;
                 var usedOutputPmtPids = new List<int>();
                 
+                var maxInputApiId = config.Inputs.Select(x=>int.Parse(x.ApiId)).Max();
+                var apiId = maxInputApiId + 1;
                 var outputProgramNumber = 1000; // This is ok?
                 foreach (var input in config.Inputs)
                 {
                     foreach (var inputProgram in input.InputPrograms)
                     {
                         var esPids = inputProgram.GetAllElementaryStreamPids();
-                        var outputPmtPid = esPids.Concat(usedOutputPmtPids).GenerateRandomPid();
-                        usedOutputPmtPids.Add(outputPmtPid);
-                        var outputProgram = new OutputProgram
-                        {
-                            PmtPid = outputPmtPid,
-                            ProgramNumber = outputProgramNumber++
-                        };
 
                         var profileNamePrefix = $"profile_{inputProgram.Name}";
                         foreach (var inputProgramProfile in inputProgramToProfiles[i])
                         {
                             var nonVidPid = inputProgramProfile.Pid;
                             var numChannels = inputProgramProfile.NumChannels;
+                            var jamPrev = inputProgramProfile.JamPrevention;
                             var traitsList = new[]
                             {
                                 new Profile.ElementaryStreamSelectionTraits
@@ -78,11 +81,20 @@ namespace SpliceConfiguration
                             var profileName = inputProgramToProfiles[i].Count > 1?
                                 $"{profileNamePrefix}_{nonVidPid}" : profileNamePrefix;
 
-                            var profile = GenerateProfile(profileName, inputProgram, 
+                            var outputPmtPid = esPids.Concat(usedOutputPmtPids).GenerateRandomPid();
+                            usedOutputPmtPids.Add(outputPmtPid);
+                            var outputProgram = new OutputProgram
+                            {
+                                PmtPid = outputPmtPid,
+                                ProgramNumber = outputProgramNumber++
+                            };
+
+                            var profile = CreateProfile(profileName, inputProgram, 
                                 traitsList,
                                 new []{outputProgram} ,
                                 EnableRateTracking);
-                            GenerateChannelsOnInput(inputProgram, profile, numChannels);
+                            Target.SplicerConfig.Profiles.Add(profile);
+                            GenerateChannelsAndOutputsOnProfile(profile, jamPrev, numChannels, ref apiId);
                         }
                         if (i + 1 < inputProgramToProfiles.Count)
                         {
@@ -92,9 +104,23 @@ namespace SpliceConfiguration
                 }
             }
 
-            private void GenerateChannelsOnInput(InputProgram primary, Profile profile, int numChannels)
+            private void GenerateChannelsAndOutputsOnProfile(Profile profile, Channel.JamPrevention jamPrev, 
+                int numChannels, ref int apiId)
             {
-                // TODO implement it..
+                var suffix = profile.Name.Substring("profile".Length);
+                var channelPrefix = $"channel{suffix}";
+                var outputPrefix = $"output{suffix}";
+                for (var i = 0; i < numChannels; i++)
+                {
+                    var channelName = numChannels > 1? $"{channelPrefix}_{i+1}" : channelPrefix;
+                    // TODO SCTE35 trigger
+                    var channel = Expert.CreateChannel(channelName, profile, null, jamPrev);
+                    Target.SplicerConfig.Channels.Add(channel);
+                    var outputName = numChannels > 1? $"{outputPrefix}_{i+1}" : outputPrefix;
+                    var output = Expert.CreateOutput(outputName, new[]{channel}, apiId.ToString());
+                    Target.SplicerConfig.Outputs.Add(output);
+                    apiId++;
+                }
             }
         }
 
@@ -102,7 +128,7 @@ namespace SpliceConfiguration
 
         public List<CCMSFile> CCMSFiles {get;} = new List<CCMSFile>();
 
-        public Input AddInput(string name, IEnumerable<Tuple<string, string, int>> programNameIdNumbers, string uri, string apiId)
+        public static Input CreateInput(string name, IEnumerable<Tuple<string, string, int>> programNameIdNumbers, string uri, string apiId)
         {
             var input = new Input
             {
@@ -123,7 +149,7 @@ namespace SpliceConfiguration
             return input;
         }
 
-        public static Profile GenerateProfile(string name, InputProgram inputProgram, 
+        public static Profile CreateProfile(string name, InputProgram inputProgram, 
             IEnumerable<Profile.ElementaryStreamSelectionTraits> traitsQueue,
             IEnumerable<OutputProgram> outputPrograms, bool rateTracking = true)
         {
@@ -146,7 +172,7 @@ namespace SpliceConfiguration
             return outputProfile;
         }
 
-        public static Channel GenerateChannel(string name, Profile profile, SCTE35Trigger trigger = null, Channel.JamPrevention jamPrev = null, bool? rateTracking = false)
+        public static Channel CreateChannel(string name, Profile profile, SCTE35Trigger trigger = null, Channel.JamPrevention jamPrev = null, bool? rateTracking = false)
         {
             var firstVideo = profile.FirstVideo();
             var channel = new Channel
@@ -167,7 +193,7 @@ namespace SpliceConfiguration
             return channel;
         }
 
-        public Output AddOuptut(string name, IEnumerable<Channel> channels, string apiId)
+        public static Output CreateOutput(string name, IEnumerable<Channel> channels, string apiId)
         {
             var output = new Output
             {
