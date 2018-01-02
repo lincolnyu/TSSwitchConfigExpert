@@ -289,6 +289,15 @@ namespace SpliceConfiguration
         {
             var template = CCMSFile.LoadTemplate(trTemplate);
             var files = new List<CCMSFile>();
+            var now = DateTime.UtcNow;
+            foreach (var trigger in SplicerConfig.Triggers)
+            {
+                var networkId = int.Parse(trigger.NetworkId);
+                var zoneId = int.Parse(trigger.ZoneId);
+                var file = new CCMSFile(now, networkId, zoneId);
+                file.CopyRecordsFrom(template, true);
+                files.Add(file);
+            }
 
             CCMSFile.RandomizeSpotIds(files);
             return files;
