@@ -3,7 +3,7 @@ using System.Xml;
 
 namespace SpliceConfiguration
 {
-    class Output : IXmlWritable
+    public class Output : IXmlWritable
     {
         public int Latency{get;set;} = 15;
         public string Name {get;set;}

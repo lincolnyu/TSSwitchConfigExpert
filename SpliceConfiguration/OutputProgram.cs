@@ -2,7 +2,7 @@ using System.Xml;
 
 namespace SpliceConfiguration
 {
-    class OutputProgram : IXmlWritable
+    public class OutputProgram : IXmlWritable
     {
         public int PmtPid {get;set;}
         public int ProgramNumber{get;set;}

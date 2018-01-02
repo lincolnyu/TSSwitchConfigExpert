@@ -13,7 +13,7 @@
 //#define KATE_CONFIGS
 //#define CLEAR_DATABASE
 //#define KILL_VLCS
-#define TEST_WRITE_CONFIG
+//#define TEST_WRITE_CONFIG
 
 //#define INGEST_ONLY
 //#define STREAM_INPUT_ONLY
@@ -416,13 +416,14 @@ namespace cs
                 //NewLineOnAttributes = true
             };
             const string configLocation = 
-                //"/Data/config/config.git/splicer2server_config.xml";
-                @"c:\temp\splicer2server_config.xml";
+                "/Data/config/config.git/splicer2server_config.xml";
+                //@"c:\temp\splicer2server_config.xml";
 
             using (var fs = new FileStream(configLocation, FileMode.Create))
             using (var xw = XmlWriter.Create(fs, settings))
             {
-                var config = Expert.TestGenerateConfig();
+                //var config = Tests.TestGenerateConfig();
+                var config = Tests.TestExpertGenerateConfig();
                 config.WriteToXml(xw);
             }
         }

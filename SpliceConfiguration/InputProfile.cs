@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Xml;
 
 namespace SpliceConfiguration
@@ -15,6 +16,9 @@ namespace SpliceConfiguration
          */
         public InputProgram Owner {get;set;}
 
-        public int MaxGopLength { get; set; }
+        public ElementaryStream FirstVideo()
+        {
+            return ElementaryStreams.FirstOrDefault(x=>x.Type == ElementaryStream.Types.Video);
+        }
     }
 }

@@ -2,7 +2,7 @@ using System.Xml;
 
 namespace SpliceConfiguration
 {
-    class Library : IXmlWritable
+    public class Library : IXmlWritable
     {
         public string Extension {get;set;}
 

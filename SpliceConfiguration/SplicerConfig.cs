@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SpliceConfiguration
 {
-    class SplicerConfig : IXmlWritable
+    public class SplicerConfig : IXmlWritable
     {
         public List<Input> Inputs {get;} = new List<Input>();
 

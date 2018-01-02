@@ -5,7 +5,7 @@ using System.Linq;
 
 namespace SpliceConfiguration
 {
-    class Profile: IXmlWritable
+    public class Profile: IXmlWritable
     {
         public class OutputElementaryStream : IXmlWritable
         {
@@ -195,12 +195,13 @@ namespace SpliceConfiguration
         {
             public OutputElementaryStream.MatchTypes MatchType;
             public int? Pid;
-            public double MaxRatio;
-            public double? MinRatio;
 
-            public delegate string SelectDisplayBitsDelegate(OutputElementaryStream oes);
+            public bool RateTracking = false;
 
-            public SelectDisplayBitsDelegate SelectDisplayBits;
+            public delegate void SetElementaryStreDelegate(OutputElementaryStream oes);
+
+            public SetElementaryStreDelegate SetBitRates;
+            public SetElementaryStreDelegate SelectDisplayBits;
             public bool CheckCCError;
             public bool CheckPidError;
             public bool ExcludeFromMuxerRestarts;
@@ -209,49 +210,59 @@ namespace SpliceConfiguration
             public ElementaryStreamSelectionTraits()
             {
                 SelectDisplayBits = DefaultSelectDisplayBits;
+                SetBitRates = DefaultSetRates;
             }
 
-            private string DefaultSelectDisplayBits(OutputElementaryStream oes)
+            private void DefaultSelectDisplayBits(OutputElementaryStream oes)
             {
                 var br = oes.MinBitRate.HasValue? oes.MinBitRate.Value : oes.MaxBitRate;
                 if (br > 1000000)
                 {
-                    return "megabits";
+                    oes.BitRateDisplayUnits = "megabits";
                 }
                 else if (br > 1000)
                 {
-                    return "kilobits";
+                    oes.BitRateDisplayUnits = "kilobits";
                 }
                 else
                 {
-                    return "bits";
+                    oes.BitRateDisplayUnits = "bits";
                 }
             }
 
-            public void SuggestTraits(bool rateTracking = true)
+            private void DefaultSetRates(OutputElementaryStream oes)
+            {
+                if (MatchType == OutputElementaryStream.MatchTypes.Video)
+                {
+                    oes.MaxBitRate = oes.SourceStream.BitRate;
+                    if (RateTracking) oes.MinBitRate =  (int)Math.Round(0.8 * oes.SourceStream.BitRate);
+                    else oes.MinBitRate = null;
+                }
+                else
+                {
+                    if (RateTracking) oes.MinBitRate =  (int)Math.Round(0.2 * oes.SourceStream.BitRate);
+                    else oes.MinBitRate = null;
+                }
+            }
+
+            public void SuggestTraits()
             {
                 if (MatchType == OutputElementaryStream.MatchTypes.Video)
                 {
                     CheckCCError = true;
-                    MaxRatio = 1.0;
-                    if (rateTracking) MinRatio =  0.8;
-                    else MinRatio = null;
                 }
                 else
                 {
                     ExcludeFromMuxerRestarts = true;
-                    MaxRatio = 1.0;
-                    if (rateTracking) MinRatio =  0.7;
-                    else MinRatio = null;
                 }
             }
         }
 
-        public static IEnumerable<ElementaryStreamSelectionTraits> SuggestTraits(IEnumerable<ElementaryStreamSelectionTraits> traitsQueue, bool rateTracking = true)
+        public static IEnumerable<ElementaryStreamSelectionTraits> SuggestTraits(IEnumerable<ElementaryStreamSelectionTraits> traitsQueue)
         {
             foreach (var traits in traitsQueue)
             {
-                traits.SuggestTraits(rateTracking);
+                traits.SuggestTraits();
                 yield return traits;
             }
         }
@@ -265,10 +276,14 @@ namespace SpliceConfiguration
                 if (oes == null) continue;
 
                 var es = oes.SourceStream;
-                oes.MaxBitRate = (int)Math.Round(es.BitRate * traits.MaxRatio);
-                if (traits.MinRatio.HasValue)
+                if (traits.SetBitRates != null)
                 {
-                    oes.MinBitRate = (int)Math.Round(es.BitRate *  traits.MinRatio.Value);
+                    traits.SetBitRates(oes);
+                }
+                else
+                {
+                    oes.MaxBitRate = es.BitRate;
+                    oes.MinBitRate = null;
                 }
                 oes.CheckCCErrors = traits.CheckCCError;
                 oes.CheckPidErrors = traits.CheckPidError;
@@ -276,7 +291,7 @@ namespace SpliceConfiguration
                 oes.OutputPid = traits.OutputPid;
                 if (traits.SelectDisplayBits != null)
                 {
-                    oes.BitRateDisplayUnits = traits.SelectDisplayBits(oes);
+                    traits.SelectDisplayBits(oes);
                 }
                 else
                 {

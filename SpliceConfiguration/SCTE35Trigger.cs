@@ -2,7 +2,7 @@ using System.Xml;
 
 namespace SpliceConfiguration
 {
-    class SCTE35Trigger : IXmlWritable
+    public class SCTE35Trigger : IXmlWritable
     {
         public string Name {get;set;}
 

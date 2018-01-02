@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace SpliceConfiguration
 {
-    class Channel : IXmlWritable
+    public class Channel : IXmlWritable
     {
         public class JamPrevention
         {

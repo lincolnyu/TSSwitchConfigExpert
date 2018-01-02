@@ -16,5 +16,11 @@ namespace SpliceConfiguration
         public Types Type {get;set;}
 
         public int BitRate {get;set;}
+
+        /**
+         Only applicable for videos
+         */
+        public int MaxGopLength { get; set; }
+
     }
 }
