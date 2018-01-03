@@ -9,7 +9,7 @@ namespace SpliceConfiguration
       Reference: 
        https://en.wikipedia.org/wiki/MPEG_transport_stream
      */
-    class Expert
+    public class Expert
     {
         public class ProfileToChannel
         {
