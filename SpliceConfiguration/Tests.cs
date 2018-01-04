@@ -8,7 +8,8 @@ namespace SpliceConfiguration
     {
         public static void GenerateConfigWithInputs(out SplicerConfig config,
             out List<IList<Expert.ProfileToChannel>> inputProgramToProfiles,
-            out SpliceRunner.InputStreamInfo[] inputStreamInfi)
+            out SpliceRunner.InputStreamInfo[] inputStreamInfi,
+            out RandomMultiSingleOutRunner.GetCCMSTemplatePathDelegate getCCMSTemplatePath)
         {
             var inputSD = new Input
             {
@@ -196,16 +197,36 @@ namespace SpliceConfiguration
                         {
                             NonVideoPid = nonVidPid,
                             JamPrevention = trivialJamPrev,
-                            Uris = new[] 
-                            {
-                                $"udp://127.0.0.1:{outputPort}",
-                                $"udp://127.0.0.1:{outputPort+1}"
-                            },
                             Library = config.Libraries[inputIndex],
                             MissingAssetPlaceholder = missingAssets[inputIndex],
-                            NetworkId = networkId++,
-                            ZoneId = zoneIds[inputIndex]
-                            // TODO networkID and zoneID ...
+                            Channels = new[]
+                            {
+                                new Expert.ProfileToChannel.ChannelInstance
+                                {
+                                    Uri = $"udp://127.0.0.1:{outputPort}",
+                                    NetworkId = networkId++,
+                                    ZoneId = zoneIds[inputIndex]
+                                },
+                                new Expert.ProfileToChannel.ChannelInstance
+                                {
+                                    Uri = $"udp://127.0.0.1:{outputPort+1}",
+                                    NetworkId = networkId++,
+                                    ZoneId = zoneIds[inputIndex]
+                                },
+                                new Expert.ProfileToChannel.ChannelInstance
+                                {
+                                    Uri = $"udp://127.0.0.1:{outputPort+2}",
+                                    NetworkId = networkId++,
+                                    ZoneId = zoneIds[inputIndex]
+                                },
+                                new Expert.ProfileToChannel.ChannelInstance
+                                {
+                                    Uri = $"udp://127.0.0.1:{outputPort+3}",
+                                    NetworkId = networkId++,
+                                    ZoneId = zoneIds[inputIndex]
+                                }
+
+                            }
                         };
                         inputProgramInfo.Add(profileToChannel);
                         outputPort += 10;
@@ -213,11 +234,23 @@ namespace SpliceConfiguration
                     inputProgramToProfiles.Add(inputProgramInfo);
                 }
             }
+
+            getCCMSTemplatePath = trigger =>
+            {
+                if (trigger.Library == libraryHD)
+                {
+                    return "/Data/video_files/multitriggers/SCHBak/C2102208.sch";
+                }
+                else
+                {
+                    return "/Data/video_files/multitriggers/SCHBak/C2102108.sch";
+                }
+            };
         }
 
         public static SplicerConfig TestExpertGenerateConfig()
         {
-            GenerateConfigWithInputs(out var config, out var inputProgramToProfiles, out var dummy);
+            GenerateConfigWithInputs(out var config, out var inputProgramToProfiles, out var dummy, out var dummy2);
 
             var expert = new Expert
             {

@@ -432,7 +432,10 @@ namespace TSSWitchConfigExpert
         static void Main(string[] args)
         {
 #if !USE_TESTS
-            Tests.GenerateConfigWithInputs(out var config, out var inputProgramToProfiles, out var inputStreamInfi);
+            const int outputVlcStep = 1;
+            const int outputVlcInterval = 10000;
+
+            Tests.GenerateConfigWithInputs(out var config, out var inputProgramToProfiles, out var inputStreamInfi, out var getCCMS);
             var expert = new Expert
             {
                 SplicerConfig = config,
@@ -441,15 +444,15 @@ namespace TSSWitchConfigExpert
             var runner = new RandomMultiSingleOutRunner(
                 expert, 
                 inputProgramToProfiles, 
-                "/Data/video_files/multitriggers/SCHBak/C2102108.sch")
+                getCCMS)
             {
                 CCMSTempDirectory = "/Data/video_files/multitriggers/SCHRun",
                 CCMSIngestDirectory = "/opt/mediaware/ingest/ccms",
                 ConfigDirectory = "/Data/config/config.git",
-                SplicerExecDirctory = "/code/splice_copy2/src/application/splicer2server/build/xenial_testing/release64-nolicense/application/splicer2server/splicer2server_app/",
-                IngestorExecDirectory = "/code/splice_copy2/src/application/splicer2server/build/xenial_testing/debug64/application/splicer2server/tools/Ingestor/CCMS/",
+                SplicerExecDirctory = "/code/splice_copy2/src/application/splicer2server/build/xenial_testing/release64-nolicense/application/splicer2server/splicer2server_app",
+                IngestorExecDirectory = "/code/splice_copy2/src/application/splicer2server/build/xenial_testing/release64-nolicense/application/splicer2server/tools/Ingestor/CCMS",
                 IngestConfigPath = "/Data/video_files/cobalt/config/ccmsingest1.xml",
-                StreamWriterExecDirectory = "/code/splice/src/application/splicer2server/build/xenial_testing/debug64/application/tools",
+                StreamWriterExecDirectory = "/code/splice/src/application/splicer2server/build/xenial_testing/release64-nolicense/application/tools",
             };
 
             foreach (var inputStreamInfo in inputStreamInfi)
@@ -458,16 +461,45 @@ namespace TSSWitchConfigExpert
             }
 
             var cmd = args.Length > 0 ? args[0] : "all";
+            var notkillall = args.Contains("--nokillall");
             switch (cmd)
             {
-            case "write": // write config and ccms
+            case "clear":
                 runner.KillAll();
+                break;
+            case "build": // build splice
+                if (!notkillall) runner.KillAll();
+                runner.BuildSplicer();
+                runner.BuildStreamWriter();
+                runner.BuildIngestor();
+                break;
+            case "write": // write config and ccms
+                if (!notkillall) runner.KillAll();
                 runner.WriteConfig();
                 runner.ClearCCMSTempFolder();
                 runner.WriteCCMSFiles();
                 break;
+            case "restart_ingest":
+                runner.RestartIngestor();
+                break;
+            case "splice_only":
+                runner.GenerateConfig();
+                runner.RestartInputs();
+                runner.RestartSplicer();
+                break;
+            case "splice_build":
+                if (!notkillall) runner.KillAll();
+                runner.BuildSplicer();
+                runner.WriteConfig();
+                runner.ClearCCMSTempFolder();
+                runner.WriteCCMSFiles();
+                runner.RestartIngestor();
+                runner.Ingest();
+                runner.RestartInputs();
+                runner.RestartSplicer();
+                break;
             case "splice":
-                runner.KillAll();
+                if (!notkillall) runner.KillAll();
                 runner.WriteConfig();
                 runner.ClearCCMSTempFolder();
                 runner.WriteCCMSFiles();
@@ -478,10 +510,10 @@ namespace TSSWitchConfigExpert
                 break;
             case "vlc":
                 runner.GenerateConfig();
-                runner.RestartAllVlcs(5,5000,1000);
+                runner.RestartAllVlcs(outputVlcStep,5000,outputVlcInterval);
                 break;
             case "all":
-                runner.KillAll();
+                if (!notkillall) runner.KillAll();
                 runner.WriteConfig();
                 runner.ClearCCMSTempFolder();
                 runner.WriteCCMSFiles();
@@ -489,7 +521,7 @@ namespace TSSWitchConfigExpert
                 runner.Ingest();
                 runner.RestartInputs();
                 runner.RestartSplicer();
-                runner.RestartAllVlcs(5,5000,1000);
+                runner.RestartAllVlcs(outputVlcStep,5000,outputVlcInterval);
                 break;
             }
 #else            

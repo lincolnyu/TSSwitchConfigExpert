@@ -13,11 +13,18 @@ namespace SpliceConfiguration
     {
         public class ProfileToChannel
         {
+            public class ChannelInstance
+            {
+                public string Uri;
+                public int NetworkId;
+                public int ZoneId;
+            }
+
             public int? VideoPid; // When specified pick the video with specified PID
 
             public int? NonVideoPid; // When specified pick the non-video with specified PID
 
-            public IList<string> Uris;
+            public IList<ChannelInstance> Channels;
 
             public Channel.JamPrevention JamPrevention;
 
@@ -25,8 +32,6 @@ namespace SpliceConfiguration
 
             public Library Library;
             bool CreateTrigger => Library != null;
-            public int NetworkId;
-            public int ZoneId;
             public string MissingAssetPlaceholder;
 
             #endregion
@@ -133,31 +138,36 @@ namespace SpliceConfiguration
             private void GenerateChannelsAndOutputsOnProfile(Profile profile, ProfileToChannel inputProgramProfile, ref int apiId)
             {
                 var jamPrev = inputProgramProfile.JamPrevention;
-                var outputUris = inputProgramProfile.Uris;
+                var channelInfi = inputProgramProfile.Channels;
 
                 var suffix = profile.Name.Substring("profile".Length);
                 var channelPrefix = $"channel{suffix}";
                 var outputPrefix = $"output{suffix}";
+                var triggerPrefix =  $"scte35{suffix}";
 
-                var triggerName =  $"scte35{suffix}";
-                var trigger = Expert.CreateTrigger(triggerName, inputProgramProfile.Library, 
-                    inputProgramProfile.NetworkId, inputProgramProfile.ZoneId, inputProgramProfile.MissingAssetPlaceholder);
-
-                Target.SplicerConfig.Triggers.Add(trigger);
-
-                var numChannels = outputUris.Count;
+                var numChannels = channelInfi.Count;
                 for (var i = 0; i < numChannels; i++)
                 {
+                    var channelInfo = channelInfi[i];
+                    var triggerName = numChannels > 1? $"{triggerPrefix}_{i+1}" : triggerPrefix;
+                    var trigger = Expert.CreateTrigger(triggerName, inputProgramProfile.Library, 
+                        channelInfo.NetworkId, channelInfo.ZoneId, inputProgramProfile.MissingAssetPlaceholder);
+                    Target.SplicerConfig.Triggers.Add(trigger);
+                    
                     var channelName = numChannels > 1? $"{channelPrefix}_{i+1}" : channelPrefix;
                     var channel = Expert.CreateChannel(channelName, profile, trigger, jamPrev);
                     Target.SplicerConfig.Channels.Add(channel);
+                    
                     var outputName = numChannels > 1? $"{outputPrefix}_{i+1}" : outputPrefix;
-                    var output = Expert.CreateOutput(outputName, outputUris[i], new[]{channel}, apiId.ToString());
+                    var output = Expert.CreateOutput(outputName, channelInfo.Uri, new[]{channel}, apiId.ToString());
                     Target.SplicerConfig.Outputs.Add(output);
+
                     apiId++;
                 }
             }
         }
+
+        public delegate string GetCCMSTemplateDelegate(SCTE35Trigger trigger);
 
         public SplicerConfig SplicerConfig {get; internal set; }
 
@@ -285,9 +295,8 @@ namespace SpliceConfiguration
             return trigger;
         }
 
-        public List<CCMSFile> GenerateSimultaneousCCMSFiles(TextReader trTemplate)
+        public List<CCMSFile> GenerateSimultaneousCCMSFiles(GetCCMSTemplateDelegate getTemplate)
         {
-            var template = CCMSFile.LoadTemplate(trTemplate);
             var files = new List<CCMSFile>();
             var now = DateTime.UtcNow;
             foreach (var trigger in SplicerConfig.Triggers)
@@ -295,11 +304,15 @@ namespace SpliceConfiguration
                 var networkId = int.Parse(trigger.NetworkId);
                 var zoneId = int.Parse(trigger.ZoneId);
                 var file = new CCMSFile(now, networkId, zoneId);
+
+                var sTemplate = getTemplate(trigger);
+                var srTemplate = new StringReader(sTemplate);
+                var template = CCMSFile.LoadTemplate(srTemplate);
+                
                 file.CopyRecordsFrom(template, true);
                 files.Add(file);
             }
 
-            CCMSFile.RandomizeSpotIds(files);
             return files;
         }
     }

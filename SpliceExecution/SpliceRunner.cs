@@ -22,7 +22,7 @@ namespace SpliceExecution
 
         public Dictionary<Input, InputStreamInfo> InputStreamInfi = new Dictionary<Input, InputStreamInfo>();
 
-        public string VlcExec {get; set;} = "cvlc";
+        public string VlcExec {get; set;} = "vlc";
 
         public string SplicerExecDirctory {get; set;}
         public string SplicerExecName {get; set;} = "splicer2server_app";
@@ -88,7 +88,7 @@ namespace SpliceExecution
 
         public virtual void KillAll()
         {
-            Helper.KillProcess(VlcExec);
+            KillAllVlcs();
             Helper.KillProcess(SplicerExecName);
             Helper.KillProcess(StreamWriterExecName);
             Helper.KillProcess(IngestorExecName);
@@ -99,6 +99,7 @@ namespace SpliceExecution
             Helper.KillProcess(IngestorExecName);
             ClearCCMSIngestFolder();
             Helper.ClearDatabase();
+
             Process.Start(IngestorExecPath, $"--config {IngestConfigPath}");
         }
 
@@ -159,6 +160,7 @@ namespace SpliceExecution
             {
                 WorkingDirectory = ConfigDirectory,
                 Arguments = $"--splicer_config ./{ConfigFileName} --logging_config ./{LoggingConfigFileName}",
+                
             };
             psi.EnvironmentVariables["LD_LIBRARY_PATH"] = "/opt/mediaware/instream2/lib";
             if (sync)
@@ -171,7 +173,7 @@ namespace SpliceExecution
             }
         }
 
-        public virtual void RestartAllVlcs(int outputSkip = 0, int delayMs = 0, int intervalMs = 0)
+        public virtual void RestartAllVlcs(int outputStep = 1, int delayMs = 0, int intervalMs = 0)
         {
             KillAllVlcs();
             if (delayMs > 0)
@@ -183,7 +185,7 @@ namespace SpliceExecution
             {
                 Thread.Sleep(intervalMs);
             }
-            RunOutputVlcs(outputSkip, intervalMs);
+            RunOutputVlcs(outputStep, intervalMs);
         }
 
         private static string UriToVlcUri(string uri)
@@ -220,12 +222,12 @@ namespace SpliceExecution
             }
         }
 
-        public virtual void RunOutputVlcs(int skip = 0, int intervalMs = 0)
+        public virtual void RunOutputVlcs(int step = 1, int intervalMs = 0)
         {
-            var countDown = 0;
+            var countDown = 1;
             foreach(var output in Config.Outputs)
             {
-                if (countDown-- > 0)
+                if (--countDown > 0)
                 {
                     continue;
                 }
@@ -236,8 +238,32 @@ namespace SpliceExecution
                 {
                     Thread.Sleep(intervalMs);
                 }
-                countDown = skip;
+                countDown = step;
             }
+        }
+
+        public virtual void BuildSplicer()
+        {
+            var buildDir = Path.Combine(SplicerExecDirctory, "../../..");
+            Directory.SetCurrentDirectory(buildDir);
+            Helper.RunProcessSync("remedy", "../../../../../src.remedy splicer2server_app --regen");
+            Helper.RunProcessSync("remedy", "../../../../../src.remedy splicer2server_app");
+        }
+
+        public virtual void BuildStreamWriter()
+        {
+            var buildDir = Path.Combine(StreamWriterExecDirectory, "../..");
+            Directory.SetCurrentDirectory(buildDir);
+            Helper.RunProcessSync("remedy", "../../../../../src.remedy streamwriter --regen");
+            Helper.RunProcessSync("remedy", "../../../../../src.remedy streamwriter");
+        }
+
+        public virtual void BuildIngestor()
+        {
+            var buildDir = Path.Combine(IngestorExecDirectory, "../../../../..");
+            Directory.SetCurrentDirectory(buildDir);
+            Helper.RunProcessSync("remedy", "../../../../../src.remedy splicer2server_ccms_ingestor --regen");
+            Helper.RunProcessSync("remedy", "../../../../../src.remedy splicer2server_ccms_ingestor");
         }
     }
 }
