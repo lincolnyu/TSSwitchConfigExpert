@@ -1,11 +1,14 @@
 using System.Linq;
 using System.Collections.Generic;
+using SpliceExecution;
 
 namespace SpliceConfiguration
 {
     class Tests
     {
-        public static SplicerConfig TestExpertGenerateConfig()
+        public static void GenerateConfigWithInputs(out SplicerConfig config,
+            out List<IList<Expert.ProfileToChannel>> inputProgramToProfiles,
+            out SpliceRunner.InputStreamInfo[] inputStreamInfi)
         {
             var inputSD = new Input
             {
@@ -124,6 +127,28 @@ namespace SpliceConfiguration
                 }
             };
 
+            inputStreamInfi = new []
+            {
+                new SpliceRunner.InputStreamInfo
+                {
+                    TSPath = "/Data/video_files/multitriggers/Source/HBOAdriaSD_6AM.ts",
+                    SupportedInput = inputSD,
+                    AdditionalUri = 
+                    {
+                        "udp://127.0.0.1:5001"
+                    }
+                },
+                new SpliceRunner.InputStreamInfo
+                {
+                    TSPath = "/Data/video_files/multitriggers/Source/HBOAdriaHD_6AM.ts",
+                    SupportedInput = inputHD,
+                    AdditionalUri = 
+                    {
+                        "udp://127.0.0.1:5101"
+                    }
+                }
+            };
+
             var librarySD = Library.CreateTSLibrary("HBO_SD", "/Data/video_files/multitriggers/SD_Assets/");
             var libraryHD = Library.CreateTSLibrary("HBO_HD", "/Data/video_files/multitriggers/HD_Assets/");
             
@@ -139,34 +164,27 @@ namespace SpliceConfiguration
                 208
             };
 
-            var expert = new Expert
+            config = new SplicerConfig
             {
-                SplicerConfig = new SplicerConfig
+                Inputs = 
                 {
-                    Inputs = 
-                    {
-                        inputSD,
-                        inputHD
-                    },
-                    Libraries = 
-                    {
-                        librarySD,
-                        libraryHD
-                    }
+                    inputSD,
+                    inputHD
+                },
+                Libraries = 
+                {
+                    librarySD,
+                    libraryHD
                 }
             };
 
-            expert.SplicerConfig.EnforceOwnerReferences();
-
-            var gen = new Expert.RandomMultiSingleOutGenerator(expert);
-
             var trivialJamPrev = new Channel.JamPrevention{};
-            var inputProgramToProfiles = new List<IList<Expert.ProfileToChannel>>();
+            inputProgramToProfiles = new List<IList<Expert.ProfileToChannel>>();
 
             var outputPort = 9000;
-            for (var inputIndex = 0; inputIndex < expert.SplicerConfig.Inputs.Count; inputIndex++)
+            for (var inputIndex = 0; inputIndex < config.Inputs.Count; inputIndex++)
             {
-                var input = expert.SplicerConfig.Inputs[inputIndex];
+                var input = config.Inputs[inputIndex];
                 var networkId = 2;
                 foreach (var inputProgram in input.InputPrograms)
                 {
@@ -183,7 +201,7 @@ namespace SpliceConfiguration
                                 $"udp://127.0.0.1:{outputPort}",
                                 $"udp://127.0.0.1:{outputPort+1}"
                             },
-                            Library = expert.SplicerConfig.Libraries[inputIndex],
+                            Library = config.Libraries[inputIndex],
                             MissingAssetPlaceholder = missingAssets[inputIndex],
                             NetworkId = networkId++,
                             ZoneId = zoneIds[inputIndex]
@@ -195,6 +213,21 @@ namespace SpliceConfiguration
                     inputProgramToProfiles.Add(inputProgramInfo);
                 }
             }
+        }
+
+        public static SplicerConfig TestExpertGenerateConfig()
+        {
+            GenerateConfigWithInputs(out var config, out var inputProgramToProfiles, out var dummy);
+
+            var expert = new Expert
+            {
+                SplicerConfig = config
+            };
+
+            config.EnforceOwnerReferences();
+
+            var gen = new Expert.RandomMultiSingleOutGenerator(expert);
+
             gen.CompleteConfigWithGivenInputs(inputProgramToProfiles);
 
             return expert.SplicerConfig;

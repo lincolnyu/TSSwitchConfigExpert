@@ -35,6 +35,7 @@ namespace SpliceConfiguration
             {
                 var clone = new Record
                 {
+                    EventType = EventType,
                     ScheduledDateTime = ScheduledDateTime,
                     WindowStartTime = WindowStartTime,
                     WindowDuration = WindowDuration,
@@ -56,8 +57,8 @@ namespace SpliceConfiguration
                 var r = new Record
                 {
                     EventType = line.Substring(0,3),
-                    ScheduledDateTime = Helper.CombineDateTime(line.Substring(4,4).MMDDToDate(), line.Substring(9,5).HHMMSSToTime()),
-                    WindowStartTime = line.Substring(16,4).HHMMSSToTime(),
+                    ScheduledDateTime = Helper.CombineDateTime(line.Substring(4,4).MMDDToDate(), line.Substring(9,6).HHMMSSToTime()),
+                    WindowStartTime = line.Substring(16,4).HHMMToTime(),
                     WindowDuration = line.Substring(21,4).HHMMToSpan(),
                     BreakNumber = int.Parse(line.Substring(26,3)),
                     PositionNumber = int.Parse(line.Substring(30,3)),
@@ -127,6 +128,7 @@ namespace SpliceConfiguration
                 var line = tr.ReadLine();
                 if (line == null) break;
                 if (line.StartsWith("REM")) continue;
+                if (line.Length < 78) continue;
                 var r = Record.Parse(line);
                 c.Records.Add(r);
             }
@@ -152,7 +154,7 @@ namespace SpliceConfiguration
         public static string GetCCMSFileName(DateTime date, int networkId, int headend)
         {
             char[] monthChars = {'1','2','3','4','5','6','7','8','9','a','b','c'};
-            return $"{monthChars[date.Month]}{date.Day:D2}{networkId:D2}{headend:D3}";
+            return $"{monthChars[date.Month-1]}{date.Day:D2}{networkId:D2}{headend:D3}.SCH";
         }
 
         public static void RandomizeSpotIds(IEnumerable<CCMSFile> files)

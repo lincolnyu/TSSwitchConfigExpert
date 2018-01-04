@@ -85,8 +85,9 @@ using System.Linq;
 using MySql.Data.MySqlClient;
 using System.Xml;
 using SpliceConfiguration;
+using SpliceExecution;
 
-namespace cs
+namespace TSSWitchConfigExpert
 {
     class Program
     {
@@ -430,6 +431,68 @@ namespace cs
 
         static void Main(string[] args)
         {
+#if !USE_TESTS
+            Tests.GenerateConfigWithInputs(out var config, out var inputProgramToProfiles, out var inputStreamInfi);
+            var expert = new Expert
+            {
+                SplicerConfig = config,
+            };
+
+            var runner = new RandomMultiSingleOutRunner(
+                expert, 
+                inputProgramToProfiles, 
+                "/Data/video_files/multitriggers/SCHBak/C2102108.sch")
+            {
+                CCMSTempDirectory = "/Data/video_files/multitriggers/SCHRun",
+                CCMSIngestDirectory = "/opt/mediaware/ingest/ccms",
+                ConfigDirectory = "/Data/config/config.git",
+                SplicerExecDirctory = "/code/splice_copy2/src/application/splicer2server/build/xenial_testing/release64-nolicense/application/splicer2server/splicer2server_app/",
+                IngestorExecDirectory = "/code/splice_copy2/src/application/splicer2server/build/xenial_testing/debug64/application/splicer2server/tools/Ingestor/CCMS/",
+                IngestConfigPath = "/Data/video_files/cobalt/config/ccmsingest1.xml",
+                StreamWriterExecDirectory = "/code/splice/src/application/splicer2server/build/xenial_testing/debug64/application/tools",
+            };
+
+            foreach (var inputStreamInfo in inputStreamInfi)
+            {
+                runner.InputStreamInfi.Add(inputStreamInfo.SupportedInput, inputStreamInfo);
+            }
+
+            var cmd = args.Length > 0 ? args[0] : "all";
+            switch (cmd)
+            {
+            case "write": // write config and ccms
+                runner.KillAll();
+                runner.WriteConfig();
+                runner.ClearCCMSTempFolder();
+                runner.WriteCCMSFiles();
+                break;
+            case "splice":
+                runner.KillAll();
+                runner.WriteConfig();
+                runner.ClearCCMSTempFolder();
+                runner.WriteCCMSFiles();
+                runner.RestartIngestor();
+                runner.Ingest();
+                runner.RestartInputs();
+                runner.RestartSplicer();
+                break;
+            case "vlc":
+                runner.GenerateConfig();
+                runner.RestartAllVlcs(5,5000,1000);
+                break;
+            case "all":
+                runner.KillAll();
+                runner.WriteConfig();
+                runner.ClearCCMSTempFolder();
+                runner.WriteCCMSFiles();
+                runner.RestartIngestor();
+                runner.Ingest();
+                runner.RestartInputs();
+                runner.RestartSplicer();
+                runner.RestartAllVlcs(5,5000,1000);
+                break;
+            }
+#else            
 #if KATE_CONFIGS
             KateConfigs();
 #elif KATE_SCHS
@@ -465,6 +528,7 @@ namespace cs
 #endif
 #if TAIL_DEBUG
             TailDebugLog();
+#endif
 #endif
 #endif
         }

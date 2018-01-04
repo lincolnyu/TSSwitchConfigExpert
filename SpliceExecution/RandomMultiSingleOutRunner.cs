@@ -1,11 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
-using System.Xml;
 using SpliceConfiguration;
 
 namespace SpliceExecution
 {
-    public class RundomMultiSingleOutRunner : SpliceRunner
+    public class RandomMultiSingleOutRunner : SpliceRunner
     {
         public Expert Expert {get;}
 
@@ -15,25 +14,20 @@ namespace SpliceExecution
 
         public override SplicerConfig Config => Expert.SplicerConfig;
 
-        public RundomMultiSingleOutRunner(Expert expert, 
+        public RandomMultiSingleOutRunner(Expert expert, 
             List<IList<Expert.ProfileToChannel>> inputProfileInfo,
-            string ccmsTemplate, string ccmsDirectory)
+            string ccmsTemplate, bool killall = false) : base(killall)
         {
             Expert = expert;
             InputProfileInfo = inputProfileInfo;
             CCMSTemplatePath = ccmsTemplate;
         }
 
-        public override void WriteConfig()
+        public override void GenerateConfig()
         {
             Expert.SplicerConfig.EnforceOwnerReferences();
             var gen = new Expert.RandomMultiSingleOutGenerator(Expert);
             gen.CompleteConfigWithGivenInputs(InputProfileInfo);
-            using (var fsConfig = new FileStream(ConfigFilePath, FileMode.Create))
-            using (var xwConfig = XmlWriter.Create(fsConfig))
-            {
-                gen.Target.SplicerConfig.WriteToXml(xwConfig);
-            }
         }
 
         public override void WriteCCMSFiles()

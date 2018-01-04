@@ -1,12 +1,27 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
+using System.Text;
+using System.Threading;
+using System.Xml;
 using SpliceConfiguration;
 
 namespace SpliceExecution
 {
     public abstract class SpliceRunner
     {
+        public class InputStreamInfo
+        {
+            public Input SupportedInput {get; set;}
+
+            public string TSPath {get; set;}
+
+            public List<string> AdditionalUri {get;} = new List<string>();
+        }
+
+        public Dictionary<Input, InputStreamInfo> InputStreamInfi = new Dictionary<Input, InputStreamInfo>();
+
         public string VlcExec {get; set;} = "cvlc";
 
         public string SplicerExecDirctory {get; set;}
@@ -29,17 +44,57 @@ namespace SpliceExecution
 
         public string IngestorExecDirectory {get;set;}
         public string IngestorExecName {get;set;} = "ccms_ingestor";
-        public string IngestorExecPath => Path.Combine(IngestorExecDirectory, IngestorExecName); 
+        public string IngestorExecPath => Path.Combine(IngestorExecDirectory, IngestorExecName);
+
+
+        public string StreamWriterExecName {get; set;} = "streamwriter";
+        public string StreamWriterExecDirectory {get;set;}
+        public string StreamWriterExecPath => Path.Combine(StreamWriterExecDirectory, StreamWriterExecName);
 
         public abstract SplicerConfig Config {get;}
 
         public List<CCMSFile> CCMSFiles {get; protected set;}
-        
-        public abstract void WriteConfig();
 
+        public abstract void GenerateConfig();
+        
         public abstract void WriteCCMSFiles();
 
-        public virtual void RestartIngester()
+        protected SpliceRunner(bool killall = false)
+        {
+            if (killall)
+            {
+                KillAll();
+            }
+        }
+
+        public virtual void WriteConfig()
+        {
+            GenerateConfig();
+
+            var xmlSettings = new XmlWriterSettings
+            {
+                Indent = true,
+                //OmitXmlDeclaration = true,
+                //NewLineOnAttributes = true
+            };
+
+            using (var fsConfig = new FileStream(ConfigFilePath, FileMode.Create))
+            using (var xwConfig = XmlWriter.Create(fsConfig, xmlSettings))
+            {
+                Config.WriteToXml(xwConfig);
+            }
+        }
+
+
+        public virtual void KillAll()
+        {
+            Helper.KillProcess(VlcExec);
+            Helper.KillProcess(SplicerExecName);
+            Helper.KillProcess(StreamWriterExecName);
+            Helper.KillProcess(IngestorExecName);
+        }
+
+        public virtual void RestartIngestor()
         {
             Helper.KillProcess(IngestorExecName);
             ClearCCMSIngestFolder();
@@ -68,13 +123,36 @@ namespace SpliceExecution
             }
         }
 
+        public virtual void ClearCCMSTempFolder()
+        {
+            var di = new DirectoryInfo(CCMSTempDirectory);
+            Helper.RemoveFiles(di.GetFiles());
+        }
+
         public virtual void ClearCCMSIngestFolder()
         {
             var di = new DirectoryInfo(CCMSIngestDirectory);
             Helper.RemoveFiles(di.GetFiles());
         }
 
-        public virtual void RunSplicer(bool sync=false)
+        public virtual void RestartInputs()
+        {
+            Helper.KillProcess(StreamWriterExecName);
+            foreach (var input in Config.Inputs)
+            {
+                if (InputStreamInfi.TryGetValue(input, out var info))
+                {
+                    var uriSb = new StringBuilder($" -s {info.SupportedInput.Uri}");
+                    foreach (var uri in info.AdditionalUri)
+                    {
+                        uriSb.Append(" -s ");
+                        uriSb.Append(uri);
+                    }
+                    Process.Start(StreamWriterExecPath, $"--input {info.TSPath}{uriSb.ToString()} -l --nosap");
+                }
+            }
+        }
+        public virtual void RestartSplicer(bool sync=false)
         {
             Helper.KillProcess(SplicerExecName);
             var psi = new ProcessStartInfo(SplicerExecPath)
@@ -91,6 +169,21 @@ namespace SpliceExecution
             {
                 Process.Start(psi);
             }
+        }
+
+        public virtual void RestartAllVlcs(int outputSkip = 0, int delayMs = 0, int intervalMs = 0)
+        {
+            KillAllVlcs();
+            if (delayMs > 0)
+            {
+                Thread.Sleep(delayMs);
+            }
+            RunInputVlcs(intervalMs);
+            if (intervalMs > 0)
+            {
+                Thread.Sleep(intervalMs);
+            }
+            RunOutputVlcs(outputSkip, intervalMs);
         }
 
         private static string UriToVlcUri(string uri)
@@ -110,23 +203,40 @@ namespace SpliceExecution
             Helper.KillProcess("vlc");
         }
 
-        public virtual void RunInputVlcs()
+        public virtual void RunInputVlcs(int intervalMs = 0)
         {
             foreach (var input in Config.Inputs)
             {
-                var uri = UriToVlcUri(input.Uri);
-                var title = input.Name;
-                Process.Start(VlcExec, $"--video-x=0 --video-y=0 --video-title={title} {uri}");
+                if (InputStreamInfi.TryGetValue(input, out var streamInfo) && streamInfo.AdditionalUri.Count > 0)
+                {
+                    var uri = UriToVlcUri(streamInfo.AdditionalUri.First());
+                    var title = input.Name;
+                    Process.Start(VlcExec, $"--video-x=0 --video-y=0 --video-title={title} {uri}");
+                    if (intervalMs > 0)
+                    {
+                        Thread.Sleep(intervalMs);
+                    }
+                }
             }
         }
 
-        public virtual void RunOutputVlcs()
+        public virtual void RunOutputVlcs(int skip = 0, int intervalMs = 0)
         {
+            var countDown = 0;
             foreach(var output in Config.Outputs)
             {
+                if (countDown-- > 0)
+                {
+                    continue;
+                }
                 var uri = UriToVlcUri(output.Uri);
                 var title = output.Name;
                 Process.Start(VlcExec, $"--video-x=0 --video-y=0 --video-title={title} {uri}");
+                if (intervalMs > 0)
+                {
+                    Thread.Sleep(intervalMs);
+                }
+                countDown = skip;
             }
         }
     }
