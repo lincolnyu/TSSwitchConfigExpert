@@ -224,8 +224,19 @@ namespace SpliceConfiguration
                                     Uri = $"udp://127.0.0.1:{outputPort+3}",
                                     NetworkId = networkId++,
                                     ZoneId = zoneIds[inputIndex]
+                                },
+                                new Expert.ProfileToChannel.ChannelInstance
+                                {
+                                    Uri = $"udp://127.0.0.1:{outputPort+4}",
+                                    NetworkId = networkId++,
+                                    ZoneId = zoneIds[inputIndex]
+                                },
+                                new Expert.ProfileToChannel.ChannelInstance
+                                {
+                                    Uri = $"udp://127.0.0.1:{outputPort+5}",
+                                    NetworkId = networkId++,
+                                    ZoneId = zoneIds[inputIndex]
                                 }
-
                             }
                         };
                         inputProgramInfo.Add(profileToChannel);
